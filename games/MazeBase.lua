@@ -249,9 +249,6 @@ function MazeBase:update()
 end
 
 function MazeBase:to_sentence_item(e, sentence)
-    -- if e.loc and self.map:is_loc_visible(e.loc.y, e.loc.x) == false then
-    --     return
-    -- end
     local s = e:to_sentence(self.agent.loc.y, self.agent.loc.x)
     for i = 1, #s do
         sentence[i] = self.vocab[s[i]]
@@ -261,14 +258,14 @@ end
 -- Tensor representation that can be feed to a model
 function MazeBase:to_sentence(sentence)
     -- TODO: this is very hacky, but needed for conv+supervision
-    if g_opts.model == 'conv' or g_opts.model == 'conv_attend' or g_opts.model == 'conv_multihops' then
+    if g_opts.model == 'conv' then
         return self:to_map()
     elseif g_opts.model == 'linear' then
         return self:to_map_onehot()
     end
     local count=0
     --should this be local?
-    sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
+    local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
     for i = 1, #self.items do
         if not self.items[i].attr._invisible then
             count= count + 1

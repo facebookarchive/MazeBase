@@ -78,7 +78,6 @@ cmd:option('--eps', 1e-6)
 --other
 cmd:option('--save', '')
 cmd:option('--load', '')
-cmd:option('--img_path', '/gfsai-oregon/ai-group/users/aszlam/maze_images/')
 g_opts = cmd:parse(arg or {})
 print(g_opts)
 

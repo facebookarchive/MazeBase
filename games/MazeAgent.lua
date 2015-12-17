@@ -12,7 +12,6 @@ function MazeAgent:__init(attr, maze)
     self.actions = {}       -- id -> func
     self.nactions = 0
     self:add_move_actions()
-    self:add_grab_action()
     self:add_toggle_action()
     if maze.crumb_action == 1 then
         self:add_breadcrumb_action()
@@ -100,20 +99,6 @@ function MazeAgent:add_toggle_action()
                     c = (c % e.attr._cn) + 1
                     e.attr._c = c
                     e.attr.color = 'color' .. c
-                end
-            end
-        end)
-end
-function MazeAgent:add_grab_action()
-    self:add_action('grab',
-        function(self)
-            local items = self.map.items[self.loc.y][self.loc.x]
-            for n = 1, #items do
-                for i,j in pairs(items[n]) do
-                    if string.find(i,'grabable') then
-                        self[i] = j
-                        items[n][i] = nil
-                    end
                 end
             end
         end)

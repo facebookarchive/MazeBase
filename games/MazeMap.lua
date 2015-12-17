@@ -5,7 +5,7 @@ local MazeMap = torch.class('MazeMap')
 function MazeMap:__init(opts)
     self.height = opts.map_height or 10
     self.width = opts.map_width or 10
-    self.img_path = opts.img_path or '/gfsai-oregon/ai-group/users/aszlam/maze_images/'
+    self.img_path = './images/'
 
     -- Items by x,y location
     self.items = {}
@@ -87,11 +87,7 @@ function MazeMap:to_image()
     local img_pushableblock = image.load(self.img_path .. 'pushableblock.png')
     local img_bfire = image.load(self.img_path .. 'blue_fire.png')
     local img_rfire = image.load(self.img_path .. 'red_fire.png')
-    local img_agent = {}
-    img_agent[1] = image.load(self.img_path .. 'agent1.png')
-    img_agent[2] = image.load(self.img_path .. 'agent2.png')
-    img_agent[3] = image.load(self.img_path .. 'agent3.png')
-    img_agent[4] = image.load(self.img_path .. 'agent4.png')
+    local img_agent = image.load(self.img_path .. 'agent.png')
 
     local img_starenemy = {}
     img_starenemy[1] = image.load(self.img_path .. 'starenemy1.png')
@@ -104,7 +100,6 @@ function MazeMap:to_image()
         for x = 1, self.width do
             local c = img:narrow(2,1+(y-1)*K,K):narrow(3,1+(x-1)*K,K)
             for i = 1, #self.items[y][x] do
- --               local c = img:narrow(2,1+(y-1)*K,K):narrow(3,1+(x-1)*K,K)
                 local item = self.items[y][x][i]
                 if not item.attr._invisible then
                     if item.type == 'block' then
@@ -120,7 +115,6 @@ function MazeMap:to_image()
                             if item.name == 'goal' .. a then
                                 c:copy(img_goals[a])
                             end
-    --                    c:copy(img_goal)
                         end
                     elseif item.type == 'door' then
                          if item.attr._c == 1 then
@@ -142,14 +136,7 @@ function MazeMap:to_image()
                              c[3]:narrow(2,1,K/2):fill(0)
                          end
                     elseif item.type == 'agent' then
-                        c[1]:fill(1)
-                        c[2]:fill(0)
-                        c[3]:fill(0)
-                        for a = 1, 4 do
-                            if item.name == 'agent' .. a then
-                                c:copy(img_agent[a])
-                            end
-                        end
+                        c:copy(img_agent)
                     elseif item.type == 'StarEnemy' then
                         c[1]:fill(1)
                         c[2]:fill(0)
