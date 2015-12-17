@@ -1,41 +1,14 @@
 function batch_init(size)
     local batch = {}
     for i = 1, size do
-        local g = new_game()
-        local r = torch.uniform()
-        if g_opts.supervision_ratio > r and g.has_supervision then
-            g.sv_on = true
-            g.sv_inputs, g.sv_actions, g.sv_rewards = g:get_supervision()
-        elseif g_opts.question_ratio > r - g_opts.supervision_ratio then
-            local X, ans, gt
-            if g_opts.babi then
-                local M, S
-                M, S, ans, gt = g_babi:get_story()
-                X = torch.Tensor(M:size(1) + S:size(1), math.max(M:size(2), S:size(2)))
-                X:fill(g_vocab['nil'])
-                X[{ {1,M:size(1)}, {1,M:size(2)} }]:copy(M)
-                X[{ {1+M:size(1),S:size(1)+M:size(1)}, {1,S:size(2)} }]:copy(S)
-            else
-                local gg
-                X, ans, gg, gt = g_questions:random_question()
-                g = gg
-            end
-            g.qa_on = true
-            g.qa_input = X
-            g.qa_ans = ans
-            g.qa_type = gt
-            g.qa_t = 1 -- when to ask
-        end
-        batch[i] = g
+        batch[i] = new_game()
     end
     return batch
 end
 
 function batch_input(batch, active, t)
-    if g_opts.model == 'conv' or g_opts.model == 'conv_attend' then
+    if g_opts.model == 'conv' then
         return batch_input_conv(batch, active, t)
-    elseif g_opts.model == 'conv_multihops' then
-        return batch_input_conv_multihops(batch, active, t)
     elseif g_opts.model == 'linear' then
         return batch_input_linear(batch, active, t)
     elseif g_opts.model == 'linear_lut' then
@@ -45,22 +18,10 @@ function batch_input(batch, active, t)
     local input = torch.Tensor(#batch, g_opts.nagents, g_opts.memsize, g_opts.max_attributes)
     input:fill(g_vocab['nil'])
     for i, g in pairs(batch) do
-        if g.sv_on then
-            if t <= #g.sv_inputs then
-                local x = g.sv_inputs[t]
-                input[i][1]:narrow(1, 1, x:size(1)):copy(x)
-            end
-        elseif g.qa_on then
-            if t == 1 then
-                local x = g.qa_input
-                input[i][1]:narrow(1, 1, x:size(1)):copy(x)
-            end
-        else
-            for a = 1, g_opts.nagents do
-                g.agent = g.agents[a]
-                if active[i][a] == 1 then
-                    g:to_sentence(input[i][a])
-                end
+        for a = 1, g_opts.nagents do
+            g.agent = g.agents[a]
+            if active[i][a] == 1 then
+                g:to_sentence(input[i][a])
             end
         end
     end
@@ -79,16 +40,8 @@ function batch_input_conv(batch, active, t)
         for a = 1, g_opts.nagents do
             g.agent = g.agents[a]
             local m = nil
-            if g.sv_on then
-                if t <= #g.sv_inputs then
-                    m = g.sv_inputs[t]
-                end
-            elseif g.qa_on then
-                error('not supported')
-            else
-                if active[i][a] == 1 then
-                    m = g:to_map()
-                end
+            if active[i][a] == 1 then
+                m = g:to_map()
             end
             if m then
                 local dy = math.floor((g_opts.conv_sz - m:size(1)) / 2) + 1
@@ -107,12 +60,6 @@ function batch_input_conv(batch, active, t)
     return {input:view(#batch * g_opts.nagents, -1), context:view(#batch * g_opts.nagents, -1)}
 end
 
-function batch_input_conv_multihops(batch, active, t)
-    local x = batch_input_conv(batch, active, t)
-    local dummy = torch.Tensor(#batch * g_opts.nagents, g_opts.hidsz):fill(0.1)
-    return {dummy, x[2], x[1]}
-end
-
 function batch_input_linear(batch, active, t)
     active = active:view(#batch, g_opts.nagents)
     local input = torch.Tensor(#batch, g_opts.nagents, g_opts.conv_sz, g_opts.conv_sz, g_opts.nwords)
@@ -123,16 +70,8 @@ function batch_input_linear(batch, active, t)
         for a = 1, g_opts.nagents do
             g.agent = g.agents[a]
             local m = nil
-            if g.sv_on then
-                if t <= #g.sv_inputs then
-                    m = g.sv_inputs[t]
-                end
-            elseif g.qa_on then
-                error('not supported')
-            else
-                if active[i][a] == 1 then
-                    m = g:to_map_onehot()
-                end
+            if active[i][a] == 1 then
+                m = g:to_map_onehot()
             end
             if m then
                 local dy = math.floor((g_opts.conv_sz - m:size(1)) / 2) + 1
@@ -168,17 +107,8 @@ function batch_input_linear_lut(batch, active, t)
         for a = 1, g_opts.nagents do
             g.agent = g.agents[a]
             local m = nil
-            if g.sv_on then
-              error('not supported')
---                if t <= #g.sv_inputs then
---                    m = g.sv_inputs[t]
---                end
-            elseif g.qa_on then
-                error('not supported')
-            else
-                if active[i][a] == 1 then
-                    m = g:to_map_onehot_lut()
-                end
+            if active[i][a] == 1 then
+                m = g:to_map_onehot_lut()
             end
             if m then
                 local count = m:size(1)
@@ -196,9 +126,6 @@ function batch_input_linear_lut(batch, active, t)
     end
     return input:view(#batch * g_opts.nagents, -1)
 end
-
-
-
 
 function batch_act(batch, action, active)
     active = active:view(#batch, g_opts.nagents)

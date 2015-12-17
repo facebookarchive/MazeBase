@@ -11,11 +11,9 @@ function train_batch()
         input[t] = batch_input(batch, active[t], t)
         local out = g_model:forward(input[t])
         if not pcall(function() action[t] = torch.multinomial(torch.exp(out[1]), 1) end) then
-            print('weird out: ')
-            print(out[1])
+            -- for some reason multinomial fails sometimes
             action[t] = torch.multinomial(torch.ones(out[1]:size()),1)
         end
-        if g_opts.hand then print('action: '); action[t][1] = tonumber(io.read()) end
         batch_act(batch, action[t]:view(-1), active[t])
         batch_update(batch, active[t])
         reward[t] = batch_reward(batch, active[t],t == g_opts.max_steps)
@@ -41,56 +39,8 @@ function train_batch()
             local grad = torch.Tensor(g_opts.batch_size * g_opts.nagents, g_opts.nactions):zero()
             grad:scatter(2, action[t], baseline)
             grad:mul(g_opts.reinforce_coeff)
-
-            -- Compute gradient of supervision
-            if g_opts.supervision_ratio > 0 then
-                local _, y = out[1]:max(2)
-                for i, g in pairs(batch) do
-                    if g.sv_on then
-                        if t <= #g.sv_inputs then
-                            grad[i][g.sv_actions[t]] = -g_opts.supervision_coeff
-                            if y[i][1] ~= g.sv_actions[t] then
-                                stat.sv_err = (stat.sv_err or 0) + 1
-                            end
-                            stat.sv_cost = (stat.sv_cost or 0) - out[1][i][g.sv_actions[t]]
-                            stat.sv_count = (stat.sv_count or 0) + 1
-                        end
-                    end
-                end
-            end
             grad:div(g_opts.batch_size)
-            local all_grad = {grad, bl_grad}
-
-            -- Compute gradient of QA
-            if g_opts.question_ratio > 0 then
-                local qa_grad = torch.Tensor(g_opts.batch_size * g_opts.nagents, g_opts.nwords):zero()
-                qa_grad:zero()
-                local _, y = out[3]:max(2)
-                for i, g in pairs(batch) do
-                    if g.qa_on and g.qa_t == t then
-                        for a = 1, g_opts.nagents do
-                            local j = (i - 1) * g_opts.nagents + a
-                            if active[t][j] == 1 then
-                                qa_grad[j][g.qa_ans] = -1
-                                stat.qa_err = (stat.qa_err or 0)
-                                stat['qa_err_' .. g.qa_type] = (stat['qa_err_' .. g.qa_type] or 0)
-                                if y[j][1] ~= g.qa_ans then
-                                    stat.qa_err = (stat.qa_err or 0) + 1
-                                    stat['qa_err_' .. g.qa_type] = (stat['qa_err_' .. g.qa_type] or 0) + 1
-                                end
-                                stat.qa_cost = (stat.qa_cost or 0) - out[3][j][g.qa_ans]
-                                stat.qa_count = (stat.qa_count or 0) + 1
-                                stat['qa_count_' .. g.qa_type] = (stat['qa_count_' .. g.qa_type] or 0) + 1
-                            end
-                        end
-                    end
-                end
-                qa_grad:div(g_opts.batch_size)
-                qa_grad:mul(g_opts.question_coeff)
-                table.insert(all_grad, qa_grad)
-            end
-
-            g_model:backward(input[t], all_grad)
+            g_model:backward(input[t], {grad, bl_grad})
         end
     end
 
@@ -177,10 +127,6 @@ function format_stat(stat)
     end
     str = str .. '\n'
     str = str .. 'bl_cost: ' .. string.format("%2.4g",stat['bl_cost']) .. ' '
-    str = str .. 'sv_err: ' .. string.format("%2.4g",stat['sv_err']) .. ' '
-    str = str .. 'sv_cost: ' .. string.format("%2.4g",stat['sv_cost']) .. ' '
-    str = str .. 'qa_err: ' .. string.format("%2.4g",stat['qa_err']) .. ' '
-    str = str .. 'qa_cost: ' .. string.format("%2.4g",stat['qa_cost']) .. ' '
     str = str .. 'reward: ' .. string.format("%2.4g",stat['reward']) .. ' '
     str = str .. 'success: ' .. string.format("%2.4g",stat['success']) .. ' '
     str = str .. 'epoch: ' .. stat['epoch']
@@ -216,14 +162,10 @@ end
 
 
 function train(N)
-    if g_opts.qlearn then
-        train_qlearn(N)
-        return
-    end
     for n = 1, N do
         local stat = {}
         for k = 1, g_opts.nbatches do
-            if g_opts.show then xlua.progress(k, g_opts.nbatches) end
+            xlua.progress(k, g_opts.nbatches)
             if g_opts.nworker > 1 then
                 g_paramdx:zero()
                 for w = 1, g_opts.nworker do
@@ -258,60 +200,9 @@ function train(N)
         else
             stat.bl_cost = 0
         end
-        if stat.sv_count ~= nil and stat.sv_count > 0 then
-            stat.sv_err = stat.sv_err / stat.sv_count
-            stat.sv_cost = stat.sv_cost / stat.sv_count
-        else
-            stat.sv_err = 0
-            stat.sv_cost = 0
-        end
-        if stat.qa_count ~= nil and stat.qa_count > 0 then
-            stat.qa_err = stat.qa_err / stat.qa_count
-            stat.qa_cost = stat.qa_cost / stat.qa_count
-            for k, v in pairs(stat) do
-                if string.sub(k, 1, 9) == 'qa_count_' then
-                    local s = string.sub(k, 10)
-                    stat['qa_err_' .. s] = stat['qa_err_' .. s] / v
-                end
-            end
-        else
-            stat.qa_err = 0
-            stat.qa_cost = 0
-        end
         stat.epoch = #g_log + 1
---        print(stat)
         print(format_stat(stat))
---        print(format_helpers())
         table.insert(g_log, stat)
-        if g_opts.show then
-            g_plot_stat = g_plot_stat or {}
-            g_plot_stat[#g_plot_stat + 1] = {stat.epoch, stat.reward, stat.success, stat.bl_cost}
-            if g_opts.supervision_ratio > 0 then
-                table.insert(g_plot_stat[#g_plot_stat], stat.sv_err)
-            end
-            if g_opts.question_ratio > 0 then
-                table.insert(g_plot_stat[#g_plot_stat], stat.qa_err)
-            end
-            g_disp.plot(g_plot_stat, {win = 'log' .. g_opts.disp})
-        end
-
-        -- bistro stuff
-        if g_opts.log_bistro then
-            g_bistro.log(stat)
-        end
-
         g_save_model()
-
-        -- restart starcraft if necessary
-        if g_opts.restart_starcraft > 0 then
-            if g_opts.nworker > 1 then
-                for w = 1, g_opts.nworker do
-                    workers:addjob(w, close_game, function() end)
-                end
-                workers:synchronize()
-            else
-                close_game()
-            end
-        end
     end
 end

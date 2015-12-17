@@ -10,16 +10,11 @@ paths.dofile('ExclusionHelper.lua')
 paths.dofile('Switches.lua')
 paths.dofile('SwitchesHelper.lua')
 paths.dofile('LightKey.lua')
-paths.dofile('NearSight.lua')
-paths.dofile('TimedGoals.lua')
 paths.dofile('Goto.lua')
 paths.dofile('GotoHelper.lua')
 paths.dofile('GotoHidden.lua')
 paths.dofile('GotoHiddenHelper.lua')
 paths.dofile('GameFactory.lua')
-paths.dofile('Questions.lua')
-paths.dofile('babi_ds.lua')
-paths.dofile('BabiQuestions.lua')
 paths.dofile('BumpEnemy.lua')
 paths.dofile('StarEnemy.lua')
 paths.dofile('Bullet.lua')
@@ -27,7 +22,6 @@ paths.dofile('PushableBlock.lua')
 paths.dofile('PushBlock.lua')
 paths.dofile('PushBlockCardinal.lua')
 paths.dofile('BlockedDoor.lua')
-paths.dofile('MultiAgents.lua')
 paths.dofile('MultiAgentsStar.lua')
 paths.dofile('MultiAgentsStarHelper.lua')
 paths.dofile('GotoCardinal.lua')
@@ -63,8 +57,6 @@ local function init_game_opts()
     helpers.PushBlockCardinal = OptsHelper
     games.BlockedDoor = BlockedDoor
     helpers.BlockedDoor = OptsHelper
-    games.MultiAgents = MultiAgents
-    helpers.MultiAgents = OptsHelper
     games.MultiAgentsStar = MultiAgentsStar
     helpers.MultiAgentsStar = MultiAgentsStarHelper
     g_factory = GameFactory(g_opts,g_vocab,games,helpers)
@@ -74,16 +66,16 @@ end
 function g_init_vocab()
     local function vocab_add(word)
         if g_vocab[word] == nil then
-            g_opts.nwords = g_opts.nwords + 1 -- FIX LATER!!!
             local ind = g_opts.nwords + 1
+            g_opts.nwords = g_opts.nwords + 1
             g_vocab[word] = ind
             g_ivocab[ind] = word
         end
     end
-    g_vocab = {} -- g_tds.hash()
-    g_ivocab = {} -- g_tds.hash()
-    g_ivocabx = {} -- g_tds.hash()
-    g_ivocaby = {} -- g_tds.hash()
+    g_vocab = {}
+    g_ivocab = {}
+    g_ivocabx = {}
+    g_ivocaby = {}
     g_opts.nwords = 0
 
     -- general
@@ -129,10 +121,6 @@ function g_init_vocab()
     vocab_add('door')
     vocab_add('open')
     vocab_add('closed')
-    -- for TimedGoals
-    for i = 1, 10 do
-        vocab_add('timer' .. i)
-    end
     -- for Switch
     vocab_add('switch')
     vocab_add('task')
@@ -140,10 +128,6 @@ function g_init_vocab()
     vocab_add('same')
     for i = 1, 10 do
         vocab_add('color' .. i)
-    end
-    -- for DeepWater
-    for i = 1, 3 do
-        vocab_add('risk' .. i)
     end
     -- for Exclusion
     vocab_add('visit')
@@ -168,31 +152,6 @@ function g_init_vocab()
         end
     end
 
-    -- for Questions:
-    vocab_add('?')
-    vocab_add('what')
-    vocab_add('is')
-    vocab_add('where')
-    vocab_add('will')
-    vocab_add('item')
-    vocab_add('at')
-    vocab_add('if')
-    vocab_add('action')
-    vocab_add('up')
-    vocab_add('down')
-    vocab_add('left')
-    vocab_add('right')
-    vocab_add('stop')
-    vocab_add('grab')
-    vocab_add('toggle')
-    vocab_add('minority')
---    vocab_add('push_up')
---    vocab_add('push_down')
---    vocab_add('push_left')
---    vocab_add('push_right')
---    vocab_add('which')
---    vocab_add('pushableblock')
-
     -- Star
     vocab_add('BumpEnemy')
     vocab_add('bullet')
@@ -209,33 +168,13 @@ function g_init_vocab()
        vocab_add('cooldown' .. s)
     end
 
-
    -- misc
     vocab_add('step')
-
-    if g_opts.babi then
-        assert(g_opts.question_ratio > 0)
-        -- this will add babi vocab
-        local dict = {memvocab = g_ivocab,imemvocab = g_vocab}
-        local ds = babi_ds(g_opts,dict)
-        g_opts.nwords = #g_vocab
-    end
-
-
 end
 
 function g_init_game()
     g_opts = paths.dofile(g_opts.games_config_path)
     local games, helpers = init_game_opts()
-    if g_opts.question_ratio > 0 then
-        if g_opts.babi then
-            local dict = {memvocab = g_ivocab,imemvocab = g_vocab}
-            local ds = babi_ds(g_opts,dict)
-            g_babi = BabiQuestions(g_opts,g_vocab,games,helpers,ds)
-        else
-            g_questions = Questions(g_opts,g_vocab,games,helpers)
-        end
-    end
 end
 
 function new_game()

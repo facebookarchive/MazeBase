@@ -180,44 +180,6 @@ local function build_model_conv()
     return {input, context}, output
 end
 
-local function build_model_conv_attend()
-    local input = nn.Identity()()
-    local context = nn.Identity()()
-
-    -- process non-spatial information
-    local cont_emb2d = LookupTable(g_opts.nwords, g_opts.hidsz)(context)
-    local cont_emb = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(cont_emb2d)
-    local cont_bow = nn.Sum(3)(cont_emb) -- sum over attributes
-    local cont_fc = nn.View(-1):setNumInputDims(2)(cont_bow)
-    local cont_out = nonlin()(nn.Linear(g_opts.memsize * g_opts.hidsz, g_opts.hidsz)(cont_fc))
-
-    -- process 2D spatial information
-    local in_emb = LookupTable(g_opts.nwords, g_opts.hidsz)(input)
-    local in_A = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(in_emb)
-    local in_bow = nn.Sum(3)(in_A)
-
-    -- attention over 2D map
-    local Q = nn.View(1, -1):setNumInputDims(1)(cont_out)
-    local S = nn.MM(false, true)({Q, in_bow})
-    local SS = nn.View(-1):setNumInputDims(2)(S)
-    local P = nn.SoftMax()(SS)
-    local attention = nn.Replicate(g_opts.hidsz, 2, 1)(P)
-    local in_attend = nn.CMulTable()({in_bow, attention})
-    local in_attend2 = nn.View(g_opts.conv_sz, g_opts.conv_sz, g_opts.hidsz)(in_attend)
-    local in_conv = nn.Transpose({2,4})(in_attend2)
-
-    local conv_out = build_conv(in_conv)
-    return {input, context}, conv_out
-end
-
-local function build_model_conv_multihops()
-    local input = nn.Identity()()
-    local context = nn.Identity()()
-    local context_conv = nn.Identity()()
-    local hid = build_memory_conv(input, context, context_conv)
-    return {input, context, context_conv}, hid[#hid]
-end
-
 function g_build_model()
     if g_opts.model == 'linear' then
         return g_build_model_linear()
@@ -232,10 +194,6 @@ function g_build_model()
         input, output = build_model_memnn()
     elseif g_opts.model == 'conv' then
         input, output = build_model_conv()
-    elseif g_opts.model == 'conv_attend' then
-        input, output = build_model_conv_attend()
-    elseif g_opts.model == 'conv_multihops' then
-        input, output = build_model_conv_multihops()
     else
         error('wrong model name')
     end
