@@ -18,10 +18,6 @@ function init_threads()
         workers:addjob(w,
             function(opts_orig, vocab_orig)
                 g_opts = opts_orig
-                if g_opts.starcraft then
-                    paths.dofile('starcraft/init.lua')
-                else
-                end
                 g_vocab = vocab_orig
                 g_init_model()
                 g_init_game()
@@ -70,8 +66,6 @@ cmd:option('--batch_size', 32)
 cmd:option('--epochs', 100)
 cmd:option('--nworker', 16)
 cmd:option('--max_grad_norm', 0)
-cmd:option('--show', false)
-cmd:option('--reinforce_coeff', 1)
 -- for rmsprop
 cmd:option('--beta', 0.97)
 cmd:option('--eps', 1e-6)

@@ -42,36 +42,61 @@ function rmsprop(opfunc, x, config, state)
     return x, {fx}
 end
 
-function g_update_param()
-    g_paramdx:div(g_opts.nworker)
-    if g_opts.max_grad_norm > 0 then
-        if g_paramdx:norm() > g_opts.max_grad_norm then
-            g_paramdx:div(g_paramdx:norm() / g_opts.max_grad_norm)
+function format_stat(stat)
+    local a = {}
+    for n in pairs(stat) do table.insert(a, n) end
+    table.sort(a)
+    local str = ''
+    for i,n in ipairs(a) do
+        if string.find(n,'count_') then
+            str = str .. n .. ': ' .. string.format("%2.4g",stat[n]) .. ' '
         end
     end
-    if g_opts.optim == 'sgd' then
-        g_paramx:add(g_paramdx:mul(-g_opts.lrate))
-    elseif g_opts.optim == 'rmsprop' then
-        local f = function(x) return g_paramx, g_paramdx end
-        local config = {
-           learningRate = g_opts.lrate,
-           alpha = g_opts.beta,
-           epsilon = g_opts.eps
-        }
-        rmsprop(f, g_paramx, config, g_rmsprop_state)
+    str = str .. '\n'
+    for i,n in ipairs(a) do
+        if string.find(n,'reward_') then
+            str = str .. n .. ': ' ..  string.format("%2.4g",stat[n]) .. ' '
+        end
+    end
+    str = str .. '\n'
+    for i,n in ipairs(a) do
+        if string.find(n,'success_') then
+            str = str .. n .. ': ' ..  string.format("%2.4g",stat[n]) .. ' '
+        end
+    end
+    str = str .. '\n'
+    str = str .. 'bl_cost: ' .. string.format("%2.4g",stat['bl_cost']) .. ' '
+    str = str .. 'reward: ' .. string.format("%2.4g",stat['reward']) .. ' '
+    str = str .. 'success: ' .. string.format("%2.4g",stat['success']) .. ' '
+    str = str .. 'epoch: ' .. stat['epoch']
+    return str
+end
+function print_tensor(a)
+    local str = ''
+    for s = 1, a:size(1) do str = str .. string.format("%2.4g",a[s]) .. ' '  end
+    return str
+end
+function format_helpers(gname)
+    local str = ''
+    if not gname then
+        for i,j in pairs(g_factory.helpers) do
+            str = str .. i .. ' :: '
+            str = str .. 'mapW: ' .. print_tensor(j.mapW) .. ' ||| '
+            str = str .. 'mapH: ' .. print_tensor(j.mapH) .. ' ||| '
+            str = str .. 'wpct: ' .. print_tensor(j.waterpct) .. ' ||| '
+            str = str .. 'bpct: ' .. print_tensor(j.blockspct) .. ' ||| '
+            str = str .. '\n'
+        end
     else
-        error('wrong optim')
+        local j = g_factory.helpers[gname]
+        str = str .. gname .. ' :: '
+        str = str .. 'mapW: ' .. print_tensor(j.mapW) .. ' ||| '
+        str = str .. 'mapH: ' .. print_tensor(j.mapH) .. ' ||| '
+        str = str .. 'wpct: ' .. print_tensor(j.waterpct) .. ' ||| '
+        str = str .. 'bpct: ' .. print_tensor(j.blockspct) .. ' ||| '
+        str = str .. '\n'
     end
-    if g_opts.nil_zero == 1 and g_opts.model == 'memnn' then
-        g_modules['A_LT'].data.module.weight[g_vocab['nil']]:zero()
-        g_modules['B_LT'].data.module.weight[g_vocab['nil']]:zero()
-    end
-    if g_opts.model == 'linear_lut' then
-        local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
-        local nilword = mapwords + g_opts.memsize*g_opts.nwords + 1
-        if g_modules.atab then g_modules.atab.weight[nilword]:zero() end
-        if g_modules.btab then g_modules.btab.weight[nilword]:zero() end
-    end
+    return str
 end
 
 function g_load_model()

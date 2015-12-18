@@ -269,6 +269,7 @@ function MazeBase:to_sentence(sentence)
     for i = 1, #self.items do
         if not self.items[i].attr._invisible then
             count= count + 1
+            if count > sentence:size(1) then error('increase memsize!') end
             self:to_sentence_item(self.items[i], sentence[count])
         end
     end

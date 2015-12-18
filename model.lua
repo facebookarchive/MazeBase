@@ -200,21 +200,10 @@ function g_build_model()
 
     local hid_act = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(output))
     local action = nn.Linear(g_opts.hidsz, g_opts.nactions)(hid_act)
-    local model
-    if g_opts.qlearn then
-        model = nn.gModule(input, {action})
-    else
-        local action_prob = nn.LogSoftMax()(action)
-        local hid_bl = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(output))
-        local baseline = nn.Linear(g_opts.hidsz, 1)(hid_bl)
-        if g_opts.question_ratio > 0 then
-            -- Add a head for question answers
-            local answers = nn.LogSoftMax()(nn.Linear(g_opts.hidsz, g_opts.nwords)(hid_act))
-            model = nn.gModule(input, {action_prob, baseline, answers})
-        else
-            model = nn.gModule(input, {action_prob, baseline})
-        end
-    end
+    local action_prob = nn.LogSoftMax()(action)
+    local hid_bl = nonlin()(nn.Linear(g_opts.hidsz, g_opts.hidsz)(output))
+    local baseline = nn.Linear(g_opts.hidsz, 1)(hid_bl)
+    local model = nn.gModule(input, {action_prob, baseline})
 
     -- IMPORTANT! do weight sharing after model is in cuda
     for _, l in pairs(g_shareList) do
