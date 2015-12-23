@@ -55,7 +55,7 @@ cmd:option('--nagents', 1)
 cmd:option('--nactions', 11)
 cmd:option('--max_steps', 20)
 cmd:option('--max_attributes', 6)
-cmd:option('--games_config_path', 'config/game_config.lua')
+cmd:option('--games_config_path', 'games/config/game_config.lua')
 cmd:option('--game', '')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'rmsprop | sgd')

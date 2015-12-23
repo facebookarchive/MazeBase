@@ -170,10 +170,11 @@ function g_init_vocab()
 
    -- misc
     vocab_add('step')
+    vocab_add('at')
 end
 
 function g_init_game()
-    g_opts = paths.dofile(g_opts.games_config_path)
+    g_opts = dofile(g_opts.games_config_path)
     local games, helpers = init_game_opts()
 end
 
