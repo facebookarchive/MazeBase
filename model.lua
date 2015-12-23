@@ -1,6 +1,6 @@
 require('nn')
-require('fbnn')
 require('nngraph')
+paths.dofile('LinearNB.lua')
 
 local LookupTable = nn.LookupTable
 
