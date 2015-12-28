@@ -76,7 +76,6 @@ end
 function MazeMap:to_image()
     local K = 32
     local img = torch.Tensor(3, self.height * K, self.width * K):fill(1)
-    --local img_goal = image.load(self.img_path .. 'goal.png')
     local img_goals={}
     for s = 1, 9 do
         img_goals[s]= image.load(self.img_path .. 'goal' .. s .. '.png')

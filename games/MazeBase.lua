@@ -35,8 +35,6 @@ function MazeBase:__init(opts, vocab)
     self.nagents = opts.nagents or 1
     self.nblocks = opts.nblocks or 0
     self.nwater = opts.nwater or 0
-    self.water_risk_factor = opts.water_risk_factor
-    self.water_risk_penalty = opts.water_risk_penalty
     self.finished = false
     self.finish_by_goal = false
 end
@@ -58,11 +56,6 @@ function MazeBase:add_default_items()
     end
     for i = 1, self.nwater do
         local e = self:place_item_rand({type = 'water'})
-        if self.water_risk_factor > 0 then
-            local r = torch.random(3)
-            e.attr.risk = 'risk' .. r
-            e.risk_val = r
-        end
     end
     if self.enable_corners == 1 then
         local H = self.map.height
@@ -108,7 +101,6 @@ function MazeBase:copy_state(maze)
     self.item_byname = {}
     for i,j in  pairs(maze.items) do
         local e = j:clone()
---        if j.loc then print(j.loc) end
         e:change_owner(self)
         self:add_prebuilt_item(e)
     end
@@ -215,19 +207,6 @@ end
 -- Agents call this function to perform action
 function MazeBase:act(action)
     self.agent:act(action)
-
-    -- water risk
-    if self.water_risk_factor > 0 then
-        self.water_penalty = 0
-        local l = self.map.items[self.agent.loc.y][self.agent.loc.x]
-        for _, e in pairs(l) do
-            if e.type == 'water' then
-                if torch.uniform() < self.water_risk_factor * e.risk_val then
-                    self.water_penalty = self.water_risk_penalty
-                end
-            end
-        end
-    end
 end
 
 -- Update map state after each step
@@ -257,15 +236,7 @@ end
 
 -- Tensor representation that can be feed to a model
 function MazeBase:to_sentence(sentence)
-    -- TODO: this is very hacky, but needed for conv+supervision
-    if g_opts.model == 'conv' then
-        return self:to_map()
-    elseif g_opts.model == 'linear' then
-        return self:to_map_onehot()
-    end
     local count=0
-    --should this be local?
-    local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
     for i = 1, #self.items do
         if not self.items[i].attr._invisible then
             count= count + 1
@@ -273,7 +244,6 @@ function MazeBase:to_sentence(sentence)
             self:to_sentence_item(self.items[i], sentence[count])
         end
     end
-    return sentence
 end
 
 -- 2D map representation for conv model
@@ -297,51 +267,29 @@ function MazeBase:to_map()
     return map
 end
 
--- onehot representation for linear model
-function MazeBase:to_map_onehot()
-    local map = torch.Tensor(self.map.height * 2 - 1, self.map.width * 2 - 1, g_opts.nwords)
-    map:fill(0)
-    for y = 1, self.map.height do
-        for x = 1, self.map.width do
-            local c = 0
-            local dy = y - self.agent.loc.y + self.map.height
-            local dx = x - self.agent.loc.x + self.map.width
-            for _,e in ipairs(self.map.items[y][x]) do
-                local s = e:to_sentence(0, 0, true)
-                for i = 1, #s do
-                    c = c + 1
-                    map[dy][dx][self.vocab[s[i]]] = 1
-                end
-            end
-        end
-    end
-    return map
-end
-
--- onehot representation for linear model
-function MazeBase:to_map_onehot_lut()
-    local MAXS = g_opts.MAXS
-    local MH = g_opts.conv_sz
-    local MW = g_opts.conv_sz
-    local V = g_opts.nwords
-    local map = torch.zeros(MAXS)
+-- onehot representation for MLP model
+function MazeBase:to_map_onehot(sentence)
     local count = 0
-    for y = 1, self.map.height do
-        for x = 1, self.map.width do
-            local dy = y - self.agent.loc.y + torch.ceil(MH/2)
-            local dx = x - self.agent.loc.x + torch.ceil(MW/2)
-            for _,e in ipairs(self.map.items[y][x]) do
-                local s = e:to_sentence(0, 0, true)
-                for i = 1, #s do
-                    count = count + 1
-                    local p = (dy-1)*MW + dx
-                    map[count] = (p-1)*V + self.vocab[s[i]]
---                    map[dy][dx][self.vocab[s[i]]] = 1
-                end
+    local c = 0
+    for _, e in pairs(self.items) do
+        if not e.attr._invisible then
+            local d
+            if e.loc then
+                local dy = e.loc.y - self.agent.loc.y + torch.ceil(g_opts.conv_sz/2)
+                local dx = e.loc.x - self.agent.loc.x + torch.ceil(g_opts.conv_sz/2)
+                d = (dy - 1) * g_opts.conv_sz + dx - 1
+            else
+                c = c + 1
+                d = g_opts.conv_sz * g_opts.conv_sz + c - 1
+            end
+            local s = e:to_sentence(0, 0, true)
+            for i = 1, #s do
+                count = count + 1
+                if count > sentence:size(1) then error('increase memsize!') end
+                sentence[count] = self.vocab[s[i]] + d * g_opts.nwords
             end
         end
     end
-    return map:narrow(1,1,count)
 end
 
 -- This reward signal is used for REINFORCE learning
@@ -355,9 +303,6 @@ function MazeBase:get_reward(is_last)
                 reward = reward - r
             end
         end
-    end
-    if self.water_risk_factor > 0 then
-        reward = reward - self.water_penalty
     end
     return reward
 end

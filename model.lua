@@ -2,8 +2,6 @@ require('nn')
 require('nngraph')
 paths.dofile('LinearNB.lua')
 
-local LookupTable = nn.LookupTable
-
 local function share(name, mod)
     if g_shareList[name] == nil then g_shareList[name] = {} end
     table.insert(g_shareList[name], mod)
@@ -22,13 +20,13 @@ local function nonlin()
 end
 
 local function build_lookup_bow(input, context, hop)
-    local A_LT = LookupTable(g_opts.nwords, g_opts.hidsz)(context)
+    local A_LT = nn.LookupTable(g_opts.nwords, g_opts.hidsz)(context)
     share('A_LT', A_LT)
     g_modules['A_LT'] = A_LT
     local A_V = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(A_LT)
     local Ain = nn.Sum(3)(A_V)
 
-    local B_LT = LookupTable(g_opts.nwords, g_opts.hidsz)(context)
+    local B_LT = nn.LookupTable(g_opts.nwords, g_opts.hidsz)(context)
     share('B_LT', B_LT)
     g_modules['B_LT'] = B_LT
     local B_V = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(B_LT)
@@ -98,12 +96,12 @@ function build_conv(input)
 end
 
 local function build_lookup_conv(input, context, hop)
-    local A_LT_conv = LookupTable(g_opts.nwords, g_opts.hidsz)(context)
+    local A_LT_conv = nn.LookupTable(g_opts.nwords, g_opts.hidsz)(context)
     share('A_LT_conv', A_LT_conv)
     local A_V = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(A_LT_conv)
     local Ain = nn.Sum(3)(A_V)
 
-    local B_LT_conv = LookupTable(g_opts.nwords, g_opts.hidsz)(context)
+    local B_LT_conv = nn.LookupTable(g_opts.nwords, g_opts.hidsz)(context)
     share('B_LT_conv', B_LT_conv)
     local B_V = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(B_LT_conv)
     local Bin = nn.Sum(3)(B_V)
@@ -150,7 +148,7 @@ local function build_model_conv()
     local context = nn.Identity()()
 
     -- process 2D spatial information
-    local in_emb = LookupTable(g_opts.nwords, g_opts.hidsz)(input)
+    local in_emb = nn.LookupTable(g_opts.nwords, g_opts.hidsz)(input)
     local in_A = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(in_emb)
     local in_bow = nn.Sum(3)(in_A)
     local in_bow2d = nn.View(g_opts.conv_sz, g_opts.conv_sz, g_opts.hidsz):setNumInputDims(2)(in_bow)
@@ -162,7 +160,7 @@ local function build_model_conv()
 
     local conv_out = build_conv(in_conv)
 
-    local cont_emb2d = LookupTable(g_opts.nwords, g_opts.hidsz)(context)
+    local cont_emb2d = nn.LookupTable(g_opts.nwords, g_opts.hidsz)(context)
     local cont_emb = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(cont_emb2d)
     local cont_bow = nn.Sum(3)(cont_emb) -- sum over attributes
     local cont_fc = nn.View(-1):setNumInputDims(2)(cont_bow)
@@ -181,11 +179,8 @@ local function build_model_conv()
 end
 
 function g_build_model()
-    if g_opts.model == 'linear' then
-        return g_build_model_linear()
-    end
-    if g_opts.model == 'linear_lut' then
-        return g_build_model_linear_lut()
+    if g_opts.model == 'mlp' then
+        return g_build_model_mlp()
     end
     local input, output
     g_shareList = {}
@@ -205,7 +200,6 @@ function g_build_model()
     local baseline = nn.Linear(g_opts.hidsz, 1)(hid_bl)
     local model = nn.gModule(input, {action_prob, baseline})
 
-    -- IMPORTANT! do weight sharing after model is in cuda
     for _, l in pairs(g_shareList) do
         if #l > 1 then
             local m1 = l[1].data.module
@@ -218,22 +212,7 @@ function g_build_model()
     return model
 end
 
-function g_build_model_linear()
-    local input = nn.Identity()()
-    local context = nn.Identity()()
-    g_modules = {}
-    local action1 = nn.Linear(g_opts.conv_sz * g_opts.conv_sz * g_opts.nwords, g_opts.nactions)(input)
-    local action2 = nn.Linear(g_opts.memsize * g_opts.nwords, g_opts.nactions)(context)
-    local action = nn.CAddTable()({ action1, action2})
-    local baseline1 = nn.Linear(g_opts.conv_sz * g_opts.conv_sz * g_opts.nwords, 1)(input)
-    local baseline2 = nn.Linear(g_opts.memsize * g_opts.nwords, 1)(context)
-    local baseline = nn.CAddTable()({ baseline1, baseline2})
-    local action_prob = nn.LogSoftMax()(action)
-    local model = nn.gModule({input, context}, {action_prob, baseline})
-    return model
-end
-
-function g_build_model_linear_lut()
+function g_build_model_mlp()
     local MH = g_opts.conv_sz
     local MW = g_opts.conv_sz
     local memsize = g_opts.memsize
@@ -245,24 +224,20 @@ function g_build_model_linear_lut()
     g_modules = {}
 
     local in_dim = MH*MW*nwords + memsize*nwords + 1
-    if g_opts.starcraft then
-        in_dim = nwords * g_opts.nwords_loc + 1 -- for nil word
-    end
 
-    if g_opts.linear_lut_two_layer or g_opts.linear_lut_three_layer then
+    if g_opts.nlayers > 1 then
         local a = nn.Sequential()
         local atab = nn.LookupTable(in_dim, g_opts.hidsz)
         g_modules.atab = atab
         a:add(atab)
         a:add(nn.Sum(2))
-        a:add(nn.Add(g_opts.hidsz)) -- need bias maybe
+        a:add(nn.Add(g_opts.hidsz)) -- bias
         a:add(nonlin())
-        if g_opts.linear_lut_three_layer then
+        for l = 3, g_opts.nlayers do
             a:add(nn.Linear(g_opts.hidsz, g_opts.hidsz))
             a:add(nonlin())
         end
         local hidstate = a(input)
-
         action = nn.Linear(g_opts.hidsz, na)(hidstate)
         baseline = nn.Linear(g_opts.hidsz, 1)(hidstate)
     else
@@ -293,5 +268,4 @@ function g_init_model()
         g_paramx:normal(0, g_opts.init_std)
     end
     g_bl_loss = nn.MSECriterion()
-    g_sv_cost = nn.ClassNLLCriterion()
 end

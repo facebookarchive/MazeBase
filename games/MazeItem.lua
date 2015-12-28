@@ -1,4 +1,3 @@
-
 local MazeItem = torch.class('MazeItem')
 
 -- An item can have attributes (optional except type) such as:
@@ -11,17 +10,17 @@ function MazeItem:__init(attr)
     self.name = attr.name
     self.attr = attr
     self.loc = self.attr.loc
-    function self:is_reachable() return true end
     if self.type == 'block' then
         function self:is_reachable() return false end
-    end
-    if self.type == 'door' then
+    elseif self.type == 'door' then
         function self:is_reachable()
             if self.attr.open == 'open' then
                 return true
             end
             return false
         end
+    else
+        function self:is_reachable() return true end
     end
 end
 

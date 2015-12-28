@@ -5,6 +5,8 @@ function train_batch()
     local input = {}
     local action = {}
     local active = {}
+
+    -- play the games
     for t = 1, g_opts.max_steps do
         active[t] = batch_active(batch)
         if active[t]:sum() == 0 then break end
@@ -19,16 +21,20 @@ function train_batch()
         reward[t] = batch_reward(batch, active[t],t == g_opts.max_steps)
     end
     local success = batch_success(batch)
+
+    -- increase difficulty if necessary
     if g_opts.curriculum == 1 then
         apply_curriculum(batch, success)
     end
+
+    -- do back-propagation
     g_paramdx:zero()
     local stat = {}
     local R = torch.Tensor(g_opts.batch_size * g_opts.nagents):zero()
     for t = g_opts.max_steps, 1, -1 do
         if active[t] ~= nil and active[t]:sum() > 0 then
             local out = g_model:forward(input[t])
-            R:add(reward[t])
+            R:add(reward[t]) -- cumulative reward
             local baseline = out[2]
             baseline:cmul(active[t])
             R:cmul(active[t])
@@ -46,16 +52,14 @@ function train_batch()
     R:resize(g_opts.batch_size, g_opts.nagents)
     -- stat by game type
     for i, g in pairs(batch) do
-        if (not g.sv_on) and ((not g.qa_on) or g_opts.starcraft) then
-            stat.reward = (stat.reward or 0) + R[i]:mean()
-            stat.success = (stat.success or 0) + success[i]
-            stat.count = (stat.count or 0) + 1
+        stat.reward = (stat.reward or 0) + R[i]:mean()
+        stat.success = (stat.success or 0) + success[i]
+        stat.count = (stat.count or 0) + 1
 
-            local t = torch.type(batch[i])
-            stat['reward_' .. t] = (stat['reward_' .. t] or 0) + R[i]:mean()
-            stat['success_' .. t] = (stat['success_' .. t] or 0) + success[i]
-            stat['count_' .. t] = (stat['count_' .. t] or 0) + 1
-        end
+        local t = torch.type(batch[i])
+        stat['reward_' .. t] = (stat['reward_' .. t] or 0) + R[i]:mean()
+        stat['success_' .. t] = (stat['success_' .. t] or 0) + success[i]
+        stat['count_' .. t] = (stat['count_' .. t] or 0) + 1
     end
     return stat
 end
@@ -106,7 +110,7 @@ function train(N)
             if g_opts.nworker > 1 then
                 g_paramdx:zero()
                 for w = 1, g_opts.nworker do
-                    workers:addjob(w, train_batch_thread,
+                    g_workers:addjob(w, train_batch_thread,
                         function(paramdx_thread, s)
                             g_paramdx:add(paramdx_thread)
                             for k, v in pairs(s) do
@@ -116,7 +120,7 @@ function train(N)
                         g_opts, g_paramx
                     )
                 end
-                workers:synchronize()
+                g_workers:synchronize()
             else
                 local s = train_batch()
                 for k, v in pairs(s) do
@@ -164,7 +168,7 @@ function g_update_param()
     else
         error('wrong optim')
     end
-    if g_opts.model == 'linear_lut' then
+    if g_opts.model == 'mlp' then
         local mapwords = g_opts.conv_sz*g_opts.conv_sz*g_opts.nwords
         local nilword = mapwords + g_opts.memsize*g_opts.nwords + 1
         if g_modules.atab then g_modules.atab.weight[nilword]:zero() end
