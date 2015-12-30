@@ -1,5 +1,12 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local MultiAgentsStarHelper, parent = torch.class('MultiAgentsStarHelper', 'OptsHelper')
---todo: deal with some parameters making it harder when smaller
+
 function MultiAgentsStarHelper:__init(opts)
     parent.__init(self, opts)
     self.generators.nenemy = self.nenemiesgen
@@ -17,7 +24,6 @@ function MultiAgentsStarHelper:ehealthgen(lopts,name)
     return 'none'
 end
 
-
 function MultiAgentsStarHelper:nenemiesgen(lopts,name)
     if self.nenemy then
         lopts.nenemy= torch.random(self.nenemy[1],self.nenemy[2])
@@ -28,9 +34,6 @@ function MultiAgentsStarHelper:nenemiesgen(lopts,name)
 end
 
 function MultiAgentsStarHelper:espeedgen(lopts,name)
-    -- the minus is a hack.  right now optshelpers
-    -- don't understand games can be harder with decreasing
-    -- values.  FIXME
     if self.enemy_speed then
         assert(self.enemy_speed[1] <= self.enemy_speed[2])
         local speed = torch.random(self.enemy_speed[1],self.enemy_speed[2])

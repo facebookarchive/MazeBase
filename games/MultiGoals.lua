@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local MultiGoals, parent = torch.class('MultiGoals', 'MazeBase')
 
 function MultiGoals:__init(opts, vocab)
@@ -16,72 +23,16 @@ function MultiGoals:__init(opts, vocab)
     -- objective
     self.goals = self.items_bytype['goal']
     self.ngoals_active = opts.ngoals_active
-    if true then
-        self.goal_order = torch.randperm(self.ngoals):narrow(1,1,self.ngoals_active)
-        for i = 1, opts.ngoals_active do
-            if i > self.ngoals_active then
-                self:add_item({type = 'info'})
-            else
-                local g = self.goals[self.goal_order[i]]
-                self:add_item({type = 'info', name = 'obj' .. i, target = g.name})
-            end
-        end
-    else
-        self.goal_order = {}
-        if torch.uniform() < 0.5 then
-            if torch.uniform() < 0.5 then
-                self:add_spatial_objective('left')
-                if self.ngoals_active > 1 then
-                    self:add_spatial_objective('right')
-                end
-            else
-                self:add_spatial_objective('right')
-                if self.ngoals_active > 1 then
-                    self:add_spatial_objective('left')
-                end
-            end
+    self.goal_order = torch.randperm(self.ngoals):narrow(1,1,self.ngoals_active)
+    for i = 1, opts.ngoals_active do
+        if i > self.ngoals_active then
+            self:add_item({type = 'info'})
         else
-            if torch.uniform() < 0.5 then
-                self:add_spatial_objective('top')
-                if self.ngoals_active > 1 then
-                    self:add_spatial_objective('bottom')
-                end
-            else
-                self:add_spatial_objective('bottom')
-                if self.ngoals_active > 1 then
-                    self:add_spatial_objective('top')
-                end
-            end
+            local g = self.goals[self.goal_order[i]]
+            self:add_item({type = 'info', name = 'obj' .. i, target = g.name})
         end
     end
     self.goal_reached = 0
-end
-
-function MultiGoals:add_spatial_objective(dir)
-    local tx = nil
-    local ty = nil
-    local ti = nil
-    for i, g in ipairs(self.goals) do
-        local update = false
-        if ti == nil then
-            update = true
-        elseif dir == 'left' then
-            if tx > g.loc.x then update = true end
-        elseif dir == 'right' then
-            if tx < g.loc.x then update = true end
-        elseif dir == 'top' then
-            if ty > g.loc.y then update = true end
-        elseif dir == 'bottom' then
-            if ty < g.loc.y then update = true end
-        end
-        if update then
-            tx = g.loc.x
-            ty = g.loc.y
-            ti = i
-        end
-    end
-    self.goal_order[#self.goal_order+1] = ti
-    self:add_item({type = 'info', name = 'obj' .. #self.goal_order, target = dir})
 end
 
 function MultiGoals:update()
@@ -109,7 +60,6 @@ function MultiGoals:get_reward()
     end
 end
 
-
 function MultiGoals:get_supervision()
     if not self.ds then
         local ds = paths.dofile('search.lua')
@@ -136,12 +86,6 @@ function MultiGoals:get_supervision()
             rew[acount] = self:get_reward()
         end
     end
-    -- if self.agent.action_ids['stop'] then
-    --     acount = acount + 1
-    --     X[acount] = self:to_sentence()
-    --     ans[acount] = self.agent.action_ids['stop']
-    --     rew[acount] = self:get_reward()
-    -- end
     if acount == 0 then
         ans = nil
         rew = 0
@@ -151,7 +95,6 @@ function MultiGoals:get_supervision()
     end
     return X,ans,rew
 end
-
 
 function MultiGoals:d2a(dy,dx)
     local lact

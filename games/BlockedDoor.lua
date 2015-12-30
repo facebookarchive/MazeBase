@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local BlockedDoor, parent = torch.class('BlockedDoor', 'MazeBase')
 
 function BlockedDoor:__init(opts, vocab)
@@ -58,7 +65,6 @@ function BlockedDoor:__init(opts, vocab)
     self.finish_by_goal = true
 end
 
-
 function BlockedDoor:place_wall()
     local orientation = torch.round(torch.uniform())
     self.orientation = orientation
@@ -104,9 +110,6 @@ function BlockedDoor:place_wall()
     end
 end
 
---TODO! fix case where agent needs to push block
--- onto goal to get past door.  currently marked
--- as impassable
 function BlockedDoor:get_supervision()
     if not self.ds then
         local ds = paths.dofile('search.lua')
@@ -178,7 +181,6 @@ function BlockedDoor:get_supervision()
             self:update()
             self:flatten_cost_map()
             rew[acount] = self:get_reward()
-            -- so annoying... what if there were more than 1?
             e = self.items_bytype['pushableblock'][1]
             local ny = self.agent.loc.y + pdy
             local nx = self.agent.loc.x + pdx
@@ -190,12 +192,6 @@ function BlockedDoor:get_supervision()
         acount, passable = self:search_move_and_update(gh,gw,X,ans,rew,acount)
         if not passable then return self:quick_return_not_passable() end
     end
-    -- if self.agent.action_ids['stop'] then
-    --     acount = acount + 1
-    --     X[acount] = self:to_sentence()
-    --     ans[acount] = self.agent.action_ids['stop']
-    --     rew[acount] = self:get_reward()
-    -- end
     if acount == 0 then
         ans = nil
         rew = 0
@@ -218,11 +214,6 @@ function BlockedDoor:quick_return_not_passable()
     return X,ans,rew
 end
 
-
-
-
-
-
 function BlockedDoor:get_push_location(e,target)
     local ply = e.loc.y + (e.loc.y - target[1])
     local plx = e.loc.x + (e.loc.x - target[2])
@@ -233,7 +224,6 @@ function BlockedDoor:get_push_location(e,target)
         return nil
     end
 end
-
 
 function BlockedDoor:quick_return_block_stuck()
     -- use this if agent has moved block badly
@@ -246,7 +236,6 @@ function BlockedDoor:quick_return_block_stuck()
     rew[acount] = self:get_reward()
     return X,ans,rew
 end
-
 
 function BlockedDoor:d2a_push(dy,dx)
     local lact
@@ -261,4 +250,3 @@ function BlockedDoor:d2a_push(dy,dx)
     end
     return self.agent.action_ids[lact]
 end
---]==]

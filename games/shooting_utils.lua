@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local S = {}
 
 local function bresenham(y0,x0,y1,x1)
@@ -97,14 +104,12 @@ local function build_shoot_action(enemyName)
                 local ex =  enemy.loc.x
                 local ey =  enemy.loc.y
                 -- target hittable?
---                print(range)
                 local ha, l = check_hittable(self.maze.cover_map, range, sy, sx, ey, ex)
                     if ha then
                     -- if so, fire gun!
                         if not self.map.agent_shots then self.map.agent_shots = {} end
                         table.insert(self.map.agent_shots,l)
                         if (math.random() > self.pMiss) then
---                        print('bang')
                         -- Hit!!!
                         enemy.health = math.max(enemy.health - 1, 0)
                     end
@@ -117,6 +122,5 @@ local function build_shoot_action(enemyName)
 end
 
 S.build_shoot_action = build_shoot_action
-
 
 return S

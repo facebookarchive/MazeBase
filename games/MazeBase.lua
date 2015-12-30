@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 paths.dofile('MazeItem.lua')
 paths.dofile('MazeAgent.lua')
 paths.dofile('MazeMap.lua')
@@ -331,8 +338,6 @@ function MazeBase:flatten_cost_map()
             end
         end
         local c = self.costs[btype]
-        -- this will be wrong if multiple items
-        -- are on the same square.  maybe sum?
         if c then
             local y = j.loc.y
             local x = j.loc.x

@@ -1,5 +1,11 @@
-local GameFactory = torch.class('GameFactory')
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
 
+local GameFactory = torch.class('GameFactory')
 
 function GameFactory:__init(opts,vocab,games,helpers)
     self.glist = {}
@@ -22,8 +28,6 @@ function GameFactory:__init(opts,vocab,games,helpers)
     if not opts.play_probabilities then
         self.probs = torch.ones(self.ngames)
     else
- --  fix me, play probabilities will be given with the names as keys
- --       self.probs = opts.play_probabilities:clone()
     end
 end
 
@@ -69,8 +73,6 @@ function GameFactory:hardest(gname)
     self.helpers[gname]:hardest()
 end
 
-
-
 function GameFactory:collect_result(gname,r)
     -- if r == 1 adds 1 to the success counter
     -- and the total counter
@@ -89,7 +91,6 @@ end
 function GameFactory:total_count(gname)
     return self.helpers[gname].total_count
 end
-
 
 function GameFactory:success_percent(gname)
     local pct = self.helpers[gname].success_count

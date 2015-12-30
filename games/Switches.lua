@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local Switches, parent = torch.class('Switches', 'MazeBase')
 
 function Switches:__init(opts, vocab)
@@ -128,12 +135,6 @@ function Switches:get_supervision()
         end
         toggled[sl] = 1
     end
-    -- if self.agent.action_ids['stop'] then
-    --     acount = acount + 1
-    --     X[acount] = self:to_sentence()
-    --     ans[acount] = self.agent.action_ids['stop']
-    --     rew[acount] = self:get_reward()
-    -- end
     if acount == 0 then
         ans = nil
         rew = 0
@@ -143,7 +144,6 @@ function Switches:get_supervision()
     end
     return X,ans,rew
 end
-
 
 function Switches:nearest_untoggled(toggled)
     local sh = self.agent.loc.y

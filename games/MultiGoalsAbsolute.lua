@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local MultiGoalsAbsolute, parent = torch.class('MultiGoalsAbsolute', 'MazeBase')
 
 function MultiGoalsAbsolute:__init(opts, vocab)
@@ -9,7 +16,6 @@ function MultiGoalsAbsolute:__init(opts, vocab)
     assert(self.ngoals > 0)
     self:add_default_items()
 
-
     for i = 1, self.ngoals do
         local e = self:place_item_rand({type = 'goal', name = 'goal' .. i, _invisible = true})
         local destination = 'ay' .. e.loc.y .. 'x' .. e.loc.x
@@ -20,10 +26,6 @@ function MultiGoalsAbsolute:__init(opts, vocab)
         attr[4] = destination
         self:add_item(attr)
     end
-
---    for i = 1, self.ngoals do
---        self:place_item_rand({type = 'goal', name = 'goal' .. i})
---    end
 
     -- objective
     self.goals = self.items_bytype['goal']
@@ -41,7 +43,6 @@ function MultiGoalsAbsolute:__init(opts, vocab)
 
     self.goal_reached = 0
 end
-
 
 function MultiGoalsAbsolute:update()
     parent.update(self)
@@ -69,7 +70,6 @@ function MultiGoalsAbsolute:get_reward()
     end
 end
 
-
 function MultiGoalsAbsolute:get_supervision()
     if not self.ds then
         local ds = paths.dofile('search.lua')
@@ -96,12 +96,6 @@ function MultiGoalsAbsolute:get_supervision()
             rew[acount] = self:get_reward()
         end
     end
-    -- if self.agent.action_ids['stop'] then
-    --     acount = acount + 1
-    --     X[acount] = self:to_sentence()
-    --     ans[acount] = self.agent.action_ids['stop']
-    --     rew[acount] = self:get_reward()
-    -- end
     if acount == 0 then
         ans = nil
         rew = 0
@@ -111,7 +105,6 @@ function MultiGoalsAbsolute:get_supervision()
     end
     return X,ans,rew
 end
-
 
 function MultiGoalsAbsolute:d2a(dy,dx)
     local lact

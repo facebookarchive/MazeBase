@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local MultiAgentsStar, parent = torch.class('MultiAgentsStar', 'MazeBase')
 
 local su = paths.dofile('shooting_utils.lua')
@@ -69,8 +76,6 @@ function MultiAgentsStar:add_shoot_action()
 end
 
 function MultiAgentsStar:update()
-    -----------------------------------
-    --some ugly stuff to display on map
     self.map.enemy_shots_d = nil
     if self.map.enemy_shots then
         self.map.enemy_shots_d = {}
@@ -87,8 +92,7 @@ function MultiAgentsStar:update()
     end
     self.map.enemy_shots = nil
     self.map.agent_shots = nil
-    -- map display junk finished
-    ----------------------------
+
     parent.update(self)
     self.enemies_alive = 0
     for _, enemy in ipairs(self.items_bytype['StarEnemy']) do

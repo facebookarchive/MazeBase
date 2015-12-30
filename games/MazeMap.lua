@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 require('image')
 
 local MazeMap = torch.class('MazeMap')
@@ -82,7 +89,6 @@ function MazeMap:to_image()
     end
     local img_block = image.load(self.img_path .. 'block.png')
     local img_water = image.load(self.img_path .. 'water.png')
-    local img_bumpenemy = image.load(self.img_path .. 'bumpenemy.png')
     local img_pushableblock = image.load(self.img_path .. 'pushableblock.png')
     local img_bfire = image.load(self.img_path .. 'blue_fire.png')
     local img_rfire = image.load(self.img_path .. 'red_fire.png')
@@ -105,8 +111,6 @@ function MazeMap:to_image()
                         c:copy(img_block)
                     elseif item.type == 'pushableblock' then
                         c:copy(img_pushableblock)
-                    elseif item.type == 'BumpEnemy' then
-                        c:copy(img_bumpenemy)
             		elseif item.type == 'water' then
                         c:copy(img_water)
                     elseif item.type == 'goal' then
@@ -159,8 +163,6 @@ function MazeMap:to_image()
                         c[{ 1, {15,18}, {15,18} }]:fill(1)
                         c[{ 2, {15,18}, {15,18} }]:fill(0)
                         c[{ 3, {15,18}, {15,18} }]:fill(0)
-                    else
-                        -- c:fill(0.5)
                     end
                 end
             end
@@ -191,7 +193,6 @@ function MazeMap:to_image()
             end
         end
     end
-
 
     local mask = self.visibility_mask:view(1, self.height, 1, self.width, 1)
     mask = mask:expand(3, self.height, K, self.width, K):clone()

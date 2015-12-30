@@ -1,13 +1,16 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local PushBlock, parent = torch.class('PushBlock', 'MazeBase')
 -- push any pushable block to the specified location
--- todo: more than one pushable block
+
 function PushBlock:__init(opts, vocab)
     parent.__init(self, opts, vocab)
-    --this game does not have supervision (yet):
     self.has_supervision =true
-    --add some switches as decoys.
-    --self.nswitches = opts.nswitches or 0
-    --self.ncolors = opts.ncolors or 1
     local ey, ex = self.map:get_empty_loc(1)
     self:place_item({_factory = PushableBlock}, ey, ex)
     self:add_default_items()
@@ -38,7 +41,6 @@ function PushBlock:update()
     end
 end
 
-
 function PushBlock:get_reward()
     if self.finished then
         return -self.costs.goal
@@ -48,7 +50,6 @@ function PushBlock:get_reward()
 end
 
 function PushBlock:get_supervision()
-    -- todo put checks in to make sure movements are possible
     local X = {}
     local H = self.map.height
     local W = self.map.width
@@ -85,7 +86,6 @@ function PushBlock:get_supervision()
         self:update()
         self:flatten_cost_map()
         rew[acount] = self:get_reward()
-        -- so annoying... what if there were more than 1?
         e = self.items_bytype['pushableblock'][1]
     end
     if acount == 0 then
@@ -99,8 +99,6 @@ function PushBlock:get_supervision()
     end
     return X,ans,rew
 end
---]==]
-
 
 function PushBlock:get_push_location(e,target)
     local ply = e.loc.y + (e.loc.y - target[1])
@@ -113,7 +111,6 @@ function PushBlock:get_push_location(e,target)
     end
 end
 
-
 function PushBlock:quick_return_block_stuck()
     -- use this if agent has moved block badly
     acount = 1
@@ -125,7 +122,6 @@ function PushBlock:quick_return_block_stuck()
     rew[acount] = self:get_reward()
     return X,ans,rew
 end
-
 
 function PushBlock:d2a_push(dy,dx)
     local lact

@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local MultiGoalsHelper, parent = torch.class('MultiGoalsHelper', 'OptsHelper')
 
 function MultiGoalsHelper:__init(opts)
@@ -5,6 +12,7 @@ function MultiGoalsHelper:__init(opts)
     self.generators.ngoals = self.ngoalsgen
     self.generators.ngoals_active = self.ngoals_activegen
 end
+
 function MultiGoalsHelper:ngoalsgen(lopts,name)
     local ngoals = torch.random(self.ngoals[1],self.ngoals[2])
     lopts.ngoals = ngoals

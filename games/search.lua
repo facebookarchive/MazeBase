@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local M = {}
 local function unhb(nh,nw,ch,cw,prev,dists,M)
     local sum = dists[ch][cw] + M[nh][nw]
@@ -37,16 +44,16 @@ local function dsearch(M,sh,sw,dh,dw)
             unhb(ch,cw-1,ch,cw,prev,dists,M)
         end
         visited[ch][cw] = 1
-        -- so slow....
+
         nmap:copy(visited):mul(dmax):add(dists)
         local ju,juu = nmap:view(H*W):min(1)
         ch = math.ceil(juu[1]/W)
         cw = juu[1] - (ch-1)*W
         if ch == dh and cw == dw then return dists[dh][dw],prev end
---        if ju == dmax then return end
     end
 end
 M.dsearch = dsearch
+
 local function backtrack(sh,sw,dh,dw,prev)
     local H = prev:size(1)
     local W = prev:size(2)
@@ -69,8 +76,6 @@ local function backtrack(sh,sw,dh,dw,prev)
     path = path:index(1,tr)
     return path
 end
-
 M.backtrack = backtrack
-
 
 return M

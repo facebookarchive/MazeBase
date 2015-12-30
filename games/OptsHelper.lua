@@ -1,6 +1,11 @@
-local OptsHelper = torch.class('OptsHelper')
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
 
--- todo: case when lower numbers are harder
+local OptsHelper = torch.class('OptsHelper')
 
 function OptsHelper:__init(opts)
     local count = 0
@@ -79,7 +84,6 @@ function OptsHelper:nblocksgen(lopts,name)
     return 'none'
 end
 
-
 function OptsHelper:nwatergen(lopts,name)
     if not lopts.map_height then return 'mapH' end
     if not lopts.map_width then return 'mapW' end
@@ -93,9 +97,6 @@ function OptsHelper:nwatergen(lopts,name)
         nw = nw + self.waterpct[1]*msize
         nw = math.ceil(nw)
         lopts.nwater = nw
-        -------------------------
-        --fix this hack!
-        --
         lopts.water_risk_factor = 0
     else
         lopts.nwater = 0
@@ -154,8 +155,6 @@ function OptsHelper:harder_random()
     if self.frozen then return end
     local m = torch.random(#self.dparams)
     local name = self.dparams[m]
---    print(name)
---    print(self[name])
     self[name][2] = self[name][2] + self[name][5]
     self[name][2] = math.min(self[name][2],self[name][4])
 end

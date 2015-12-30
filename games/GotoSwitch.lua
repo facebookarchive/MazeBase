@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local GotoSwitch, parent = torch.class('GotoSwitch', 'MazeBase')
 
 function GotoSwitch:__init(opts, vocab)
@@ -24,7 +31,6 @@ function GotoSwitch:__init(opts, vocab)
     self:add_item(attr)
 end
 
-
 function GotoSwitch:update()
     parent.update(self)
     self.finished = false
@@ -38,7 +44,6 @@ function GotoSwitch:update()
     end
 end
 
-
 function GotoSwitch:get_reward()
     if self.finished then
         return -self.costs.goal
@@ -46,27 +51,3 @@ function GotoSwitch:get_reward()
         return parent.get_reward(self)
     end
 end
---[==[
-function GotoSwitch:get_supervision()
-    local X = {}
-    local H = self.map.height
-    local W = self.map.width
-    local ans = torch.zeros(H*W)
-    local rew = torch.zeros(H*W)
-    if not self.ds then
-        local ds = paths.dofile('search.lua')
-        self.ds = ds
-    end
-    self:flatten_cost_map()
-    local acount = 0
-    acount = self:search_move_and_update(self.ygoal,self.xgoal,X,ans,rew,acount)
-    if acount == 0 then
-        ans = nil
-        rew = 0
-    else
-        ans = ans:narrow(1,1,acount)
-        rew = rew:narrow(1,1,acount)
-    end
-    return X,ans,rew
-end
---]==]

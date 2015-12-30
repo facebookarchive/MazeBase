@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 paths.dofile('MazeBase.lua')
 paths.dofile('OptsHelper.lua')
 paths.dofile('MultiGoals.lua')
@@ -104,8 +111,6 @@ function g_init_vocab()
     vocab_add('if')
     local mh = 12
     local mw = 12
-    -- fix me!
-    g_opts.MAXI = 10
     g_opts.MH = mh
     g_opts.MW = mw
     for y = -mh, mh do
@@ -116,7 +121,6 @@ function g_init_vocab()
             g_ivocaby[g_vocab[w]] = y
         end
     end
-
     -- for LightKey
     vocab_add('door')
     vocab_add('open')

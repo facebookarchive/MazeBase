@@ -1,13 +1,17 @@
-local PushableBlock, parent = torch.class('PushableBlock','MazeItem')
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
 
---todo: attr._destructible
+local PushableBlock, parent = torch.class('PushableBlock','MazeItem')
 
 function PushableBlock:__init(attr,maze)
     self.maze = maze
     self.map = maze.map
     self.name = attr.name
     self.attr = attr
-    -- todo?  two words?  some compositionality in language?
     self.type = 'pushableblock'
     self.attr[1] =  'pushable'
     self.attr[2] =  'block'

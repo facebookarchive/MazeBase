@@ -1,6 +1,11 @@
-local Bullet, parent = torch.class('Bullet','MazeItem')
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
 
---todo: attr._destructible
+local Bullet, parent = torch.class('Bullet','MazeItem')
 
 function Bullet:__init(attr,maze)
     -- dummy object that exists for one time step
@@ -11,7 +16,6 @@ function Bullet:__init(attr,maze)
     self.attr = attr
     self.loc = self.attr.loc
     self.nactions = 0
-   -- why does bullet have an action list?
     self.action_names = {}
     self.action_ids ={}
     self.actions ={}
@@ -24,15 +28,11 @@ function Bullet:__init(attr,maze)
 end
 
 function Bullet:update()
-
    if self.lifespan==0 then
       self.killed = true
---      print('Bullet at ('..self.loc.x..','..self.loc.y..') removed!')
       self.map:remove_item(self)
    end
-
    self.lifespan = self.lifespan - 1
-
 end
 
 function Bullet:clone()

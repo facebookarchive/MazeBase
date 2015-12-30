@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 if not g_opts then g_opts = {} end
 g_opts.multigames = {}
 -------------------
@@ -20,18 +27,10 @@ sso.costs.block = 1000
 sso.costs.water = 0.2
 sso.costs.corner = 0
 sso.costs.step = 0.1
-sso.costs.BumpEnemy = 1
 ---------------------
-sso.vision_dist = 1.5
-sso.vision_persist = 1
 sso.crumb_action = 0
 sso.flag_visited = 1
-sso.timer_max = 0
-sso.timer_visible = 1
-sso.water_risk_factor = 0
-sso.water_penalty = 0
 sso.enable_boundary = 0
-sso.max_attributes = g_opts.max_attributes or 6
 
 -------------------------------------------------------
 -- MultiGoals:

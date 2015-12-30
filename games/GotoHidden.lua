@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local GotoHidden, parent = torch.class('GotoHidden', 'MazeBase')
 
 function GotoHidden:__init(opts, vocab)
@@ -31,7 +38,6 @@ function GotoHidden:setOpts(opts, vocab)
     self.true_goal = torch.random(self.ngoals)
     local attr = {type = 'info'}
     attr[1] =  'go'
---                  2 = 'to',
     attr[2] = 'goal' .. self.true_goal
     self:add_item(attr)
     -- some decoys, if desired
@@ -73,7 +79,6 @@ function GotoHidden:get_reward()
     end
 end
 
-
 function GotoHidden:get_supervision()
     if not self.ds then
         local ds = paths.dofile('search.lua')
@@ -90,12 +95,6 @@ function GotoHidden:get_supervision()
     local dh = self.items_bytype['goal'][gid].loc.y
     local dw = self.items_bytype['goal'][gid].loc.x
     acount = self:search_move_and_update(dh,dw,X,ans,rew,acount)
-    -- if self.agent.action_ids['stop'] then
-    --     acount = acount + 1
-    --     X[acount] = self:to_sentence()
-    --     ans[acount] = self.agent.action_ids['stop']
-    --     rew[acount] = self:get_reward()
-    -- end
     if acount == 0 then
         ans = nil
         rew = 0

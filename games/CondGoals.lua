@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local CondGoals, parent = torch.class('CondGoals', 'MazeBase')
 
 function CondGoals:__init(opts, vocab)
@@ -89,12 +96,6 @@ function CondGoals:get_supervision()
     local dh = self.items_bytype['goal'][gid].loc.y
     local dw = self.items_bytype['goal'][gid].loc.x
     acount = self:search_move_and_update(dh,dw,X,ans,rew,acount)
-    -- if self.agent.action_ids['stop'] then
-    --     acount = acount + 1
-    --     X[acount] = self:to_sentence()
-    --     ans[acount] = self.agent.action_ids['stop']
-    --     rew[acount] = self:get_reward()
-    -- end
     if acount == 0 then
         ans = nil
         rew = 0
@@ -118,73 +119,3 @@ function CondGoals:d2a(dy,dx)
     end
     return self.agent.action_ids[lact]
 end
-
-
-
---[===[
-function CondGoals:get_supervision()
-    if not self.ds then
-        local ds = paths.dofile('search.lua')
-        self.ds = ds
-    end
-    self:flatten_cost_map()
-    local path = self:find_path()
-    local X, act = self:bpath_to_data(path)
-    return X,act
-end
-
-function CondGoals:find_path()
-    if not self.ds then
-        local ds = paths.dofile('search.lua')
-        self.ds = ds
-    end
-    local pcount = 0
-    local H = self.map.height
-    local W = self.map.width
-    local sh = self.item_byname['agent1'].loc.y
-    local sw =  self.item_byname['agent1'].loc.x
-    local gid = self.cond_goal
-    local dh = self.items_bytype['goal'][gid].loc.y
-    local dw = self.items_bytype['goal'][gid].loc.x
-    local path
-    if sh ~= dh or sw ~= dw then
-        local dist,prev = self.ds.dsearch(self.cmap,sh,sw,dh,dw)
-        path = self.ds.backtrack(sh,sw,dh,dw,prev)
-    else --agent already at local goal
-        path = torch.Tensor{sh,sw}
-    end
-    return path
-end
-
-function CondGoals:bpath_to_data(bpath)
-    local pl = bpath:size(1)
-    local agent = self.items_bytype['agent'][1]
-    agent.loc.y = bpath[1][1]
-    agent.loc.x = bpath[1][2]
-    local X = {}
-    local act = torch.Tensor(pl)
-    for t = 1, pl-1 do
-        X[t] = self:to_sentence('agent1')
-        local dy = bpath[t+1][1]-bpath[t][1]
-        local dx = bpath[t+1][2]-bpath[t][2]
-        local lact
-        if dy< 0 then
-            lact = 'up'
-        elseif dy> 0 then
-            lact = 'down'
-         elseif dx> 0 then
-            lact = 'right'
-        elseif dx< 0 then
-            lact = 'left'
-        else
-            lact = 'stop'
-        end
-        act[t] = self.agent.action_ids[lact]
-        self:act('agent1',act[t])
-        self:update()
-    end
-    X[pl] = self:to_sentence('agent1')
-    act[pl] = self.agent.action_ids['stop']
-    return X,act
-end
---]===]

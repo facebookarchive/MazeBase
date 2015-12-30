@@ -1,3 +1,10 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant 
+-- of patent rights can be found in the PATENTS file in the same directory.
+
 local LightKey, parent = torch.class('LightKey', 'MazeBase')
 
 function LightKey:__init(opts, vocab)
@@ -61,11 +68,7 @@ function LightKey:__init(opts, vocab)
                     c = (c % e.attr._cn) + 1
                     e.attr._c = c
                     e.attr.color = 'color' .. c
-           --         print('updating door.  current state:')
-           --         print(self.items_bytype.door[1].attr)
                     self:update_door(c)
-            --        print('new state:')
-            --        print(self.items_bytype.door[1].attr)
                 end
             end
         end
@@ -95,7 +98,6 @@ function LightKey:update_door(c)
         end
     end
 end
-
 
 function LightKey:place_wall()
     local orientation = torch.round(torch.uniform())
@@ -195,12 +197,6 @@ function LightKey:get_supervision()
         acount, passable = self:search_move_and_update(gh,gw,X,ans,rew,acount)
         if not passable then return self:quick_return_not_passable() end
     end
-    -- if self.agent.action_ids['stop'] then
-    --     acount = acount + 1
-    --     X[acount] = self:to_sentence()
-    --     ans[acount] = self.agent.action_ids['stop']
-    --     rew[acount] = self:get_reward()
-    -- end
     if acount == 0 then
         ans = nil
         rew = 0
