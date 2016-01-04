@@ -27,4 +27,4 @@ Currently, there are 10 different tasks implemented, but it is easy to add new t
 - **Push block cardinal:** the agent needs to push a Pushable block so that it is on a specified edge of the maze, e.g. the left edge. Any location along the edge is acceptable.
 - **Blocked door:** the agent should navigate to a goal which may lie on the opposite side of a wall of blocks, as in the Light Key game. However, a PushableBlock blocks the gap in the wall instead of a door.
 
-Examples of each game are shown in this [video](https: //youtu.be/kwnp8jFRi5E).
+Examples of each game are shown in this [video](https://youtu.be/kwnp8jFRi5E).
