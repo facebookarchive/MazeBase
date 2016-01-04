@@ -1,10 +1,7 @@
 # MazeBase
-This is a simple environment for creating very simple 2D games and training neural network models to perform various tasks within them. This software framework is designed to be compact but flexible, enabling anyone to implement games as diverse as simple role-playing game (RPG) puzzles and StarCraft-like combat, as well as facilitating the creation of new ones. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training.
+This is a simple environment for creating very simple 2D games and training neural network models to perform various tasks within them. It is designed to be compact but flexible, enabling anyone to implement new games in it. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training. The code is in Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior.
 
-Written in Torch†, it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior
-
-
-### Items
+### Environment
 Each game is played in a 2D rectangular grid. Each location in the grid can be empty, or may contain one or more items such as:
 - **Block:** an impassible obstacle that does not allow the agent to move to that grid location
 - **Water:** the agent may move to a grid location with water, but incurs an additional cost of for doing so.
@@ -15,12 +12,10 @@ Each game is played in a 2D rectangular grid. Each location in the grid can be e
 - **Goal:** depending on the task, one or more goals may exist, each named individually.
 - **Info:** these items do not have a grid location, but can specify a task or give information necessary for its completion.
 
-The environment is presented to the agent as a list of sentences, each describing an item in the game. For example, an agent might see “Block at [-1,4]. Switch at [+3,0] with blue color. Info: change switch to red.”
-However, note that we use egocentric spatial coordinates (e.g. the goal G1 in Fig. 1 (left) is at coordinates [+2,0]), meaning that the environment updates the locations of each object after an action‡. 
-The environments are generated randomly with some distribution on the various items. For example, we usually specify a uniform distribution over height and width (between 5 and 10 for the experi- ments reported here), and a percentage of wall blocks and water blocks (each range randomly from 0 to 20%).
+The environment is presented to the agent as a list of sentences, each describing an item in the game. For example, an agent might see “Block at [-1,4]. Switch at [+3,0] with blue color. Info: change switch to red.” However, note that we use egocentric spatial coordinates, meaning that the environment updates the locations of each object after an action. The environments are generated randomly with some distribution on the various items. For example, we usually specify a uniform distribution over height and width, and a percentage of wall blocks and water blocks.
 
 ### Tasks
-Currently, there are 10 different tasks implemented, but it is easy to add new tasks. The tasks are:
+Currently, there are 10 different tasks implemented, but it is easy to add new tasks. The existing tasks are:
 - **Multigoals:** the agent is given an ordered list of goals as “Info”, and needs to visit the goals in that order.
 - **Conditional Goals:** the agent must visit a destination goal that is conditional on the state of a switch. The “Info” is of the form “go to goal 4 if the switch is colored red, else go to goal 2”.
 - **Exclusion:** the “Info” in this game specifies a list of goals to avoid. The agent should visit all other unmentioned goals.
