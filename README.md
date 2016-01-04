@@ -1,9 +1,35 @@
 # MazeBase
-This is a simple environment for creating very simple 2D games and training neural network models to perform tasks within them. 
+This is a simple environment for creating very simple 2D games and training neural network models to perform various tasks within them. This software framework is designed to be compact but flexible, enabling anyone to implement games as diverse as simple role-playing game (RPG) puzzles and StarCraft-like combat, as well as facilitating the creation of new ones. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training.
 
-Items in the :
-- Block: an impassible obstacle that does not allow the agent to move to that grid location
-
-Currently, there are 10 different tasks implemented:
+Written in Torch†, it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior
 
 
+### Items
+Each game is played in a 2D rectangular grid. Each location in the grid can be empty, or may contain one or more items such as:
+- **Block:** an impassible obstacle that does not allow the agent to move to that grid location
+- **Water:** the agent may move to a grid location with water, but incurs an additional cost of for doing so.
+- **Switch:** a switch can be in one of M states, which we refer to as colors. The agent can toggle through the states cyclically by a toggle action when it is at the location of the switch .
+- **Door:** a door has a color, matched to a particular switch. The agent may only move to the door’s grid location if the state of the switch matches the state of the door.
+- **PushableBlock:** This block is impassable, but can be moved with a separate “push” actions. The block moves in the direction of the push, and the agent must be located adjacent to the block opposite the direction of the push.
+- **Corner:** This item simply marks a corner of the board.
+- **Goal:** depending on the task, one or more goals may exist, each named individually.
+- **Info:** these items do not have a grid location, but can specify a task or give information necessary for its completion.
+
+The environment is presented to the agent as a list of sentences, each describing an item in the game. For example, an agent might see “Block at [-1,4]. Switch at [+3,0] with blue color. Info: change switch to red.”
+However, note that we use egocentric spatial coordinates (e.g. the goal G1 in Fig. 1 (left) is at coordinates [+2,0]), meaning that the environment updates the locations of each object after an action‡. 
+The environments are generated randomly with some distribution on the various items. For example, we usually specify a uniform distribution over height and width (between 5 and 10 for the experi- ments reported here), and a percentage of wall blocks and water blocks (each range randomly from 0 to 20%).
+
+### Tasks
+Currently, there are 10 different tasks implemented, but it is easy to add new tasks. The tasks are:
+- **Multigoals:** the agent is given an ordered list of goals as “Info”, and needs to visit the goals in that order.
+- **Conditional Goals:** the agent must visit a destination goal that is conditional on the state of a switch. The “Info” is of the form “go to goal 4 if the switch is colored red, else go to goal 2”.
+- **Exclusion:** the “Info” in this game specifies a list of goals to avoid. The agent should visit all other unmentioned goals.
+- **Switches:** there are multiple switches on the board, and the agent has to toggle all switches to the same color.
+- **Light Key:** there is a switch and a door in a wall of blocks. The agent should navigate to a goal which may be on the wrong side of a wall of blocks, in which the agent needs move to and toggle the switch to open the door before going to the goal.
+- **Goto:** the agent is given an absolute location on the grid as a target. The game ends when the agent visits this location. Solving this task requires the agent to convert from its own egocentric coordinate representation to absolute coordinates.
+- **Goto Hidden:** the agent is given a list of goals with absolute coordinates, and then is told to go to one of the goals by the goal’s name. The agent is not directly given the goal’s location, it must read this from the list of goal locations.
+- **Push block:** the agent needs to push a Pushable block so that it lays on top of a switch.
+- **Push block cardinal:** the agent needs to push a Pushable block so that it is on a specified edge of the maze, e.g. the left edge. Any location along the edge is acceptable.
+- **Blocked door:** the agent should navigate to a goal which may lie on the opposite side of a wall of blocks, as in the Light Key game. However, a PushableBlock blocks the gap in the wall instead of a door.
+
+Examples of each game are shown in this [video](https: //youtu.be/kwnp8jFRi5E).
