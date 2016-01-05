@@ -1,5 +1,5 @@
-# MazeBase
-This is a simple 2D game environment for training machine learning models to perform diverse tasks. It is designed to be compact but flexible, enabling anyone to implement new games in it. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training. The code is in Lua+Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior.
+# MazeBase: a sandbox for learning from games
+This code is for a simple 2D game environment that can be used in developing reinforcement learning models. It is designed to be compact but flexible, enabling the implementation of diverse set of tasks. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training. The code is in Lua+Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior.
 
 ## Environment
 Each game is played in a 2D rectangular grid. Each location in the grid can be empty, or may contain one or more items such as:
