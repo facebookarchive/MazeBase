@@ -1,7 +1,7 @@
 # MazeBase
-This is a simple environment for creating very simple 2D games and training neural network models to perform various tasks within them. It is designed to be compact but flexible, enabling anyone to implement new games in it. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training. The code is in Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior.
+This is a simple 2D game environment for training machine learning models to perform diverse tasks. It is designed to be compact but flexible, enabling anyone to implement new games in it. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training. The code is in Lua+Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior.
 
-### Environment
+## Environment
 Each game is played in a 2D rectangular grid. Each location in the grid can be empty, or may contain one or more items such as:
 - **Block:** an impassible obstacle that does not allow the agent to move to that grid location
 - **Water:** the agent may move to a grid location with water, but incurs an additional cost of for doing so.
@@ -14,8 +14,8 @@ Each game is played in a 2D rectangular grid. Each location in the grid can be e
 
 The environment is presented to the agent as a list of sentences, each describing an item in the game. For example, an agent might see “Block at [-1,4]. Switch at [+3,0] with blue color. Info: change switch to red.” However, note that we use egocentric spatial coordinates, meaning that the environment updates the locations of each object after an action. The environments are generated randomly with some distribution on the various items. For example, we usually specify a uniform distribution over height and width, and a percentage of wall blocks and water blocks.
 
-### Tasks
-Currently, there are 10 different tasks implemented, but it is easy to add new tasks. The existing tasks are:
+## Tasks
+Currently, there are 10 different tasks implemented, but it is possible to add new tasks. The existing tasks are:
 - **Multigoals:** the agent is given an ordered list of goals as “Info”, and needs to visit the goals in that order.
 - **Conditional Goals:** the agent must visit a destination goal that is conditional on the state of a switch. The “Info” is of the form “go to goal 4 if the switch is colored red, else go to goal 2”.
 - **Exclusion:** the “Info” in this game specifies a list of goals to avoid. The agent should visit all other unmentioned goals.
@@ -27,4 +27,21 @@ Currently, there are 10 different tasks implemented, but it is easy to add new t
 - **Push block cardinal:** the agent needs to push a Pushable block so that it is on a specified edge of the maze, e.g. the left edge. Any location along the edge is acceptable.
 - **Blocked door:** the agent should navigate to a goal which may lie on the opposite side of a wall of blocks, as in the Light Key game. However, a PushableBlock blocks the gap in the wall instead of a door.
 
-Examples of each game are shown in this [video](https://youtu.be/kwnp8jFRi5E).
+Examples of each tasks are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the tasks are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/games/config/game_config.lua), which can be easily modified.
+
+## Training
+We also provide a code for training different types of neural models with policy gradient method. Training uses CPUs with multi-threading for speed up.
+The implemented models are (i) multi-layer neural network, (ii) convolutional neural network, and (iii) [end-to-end memory network](http://arxiv.org/abs/1503.08895).
+
+For example, running the following command will train a 2-layer network on MultiGoals.
+```
+th main.lua --hidsz 50 --model mlp --nlayers 2 --epochs 100 --game MultiGoals
+```
+To see all the command line options, run 
+```
+th main.lua -h
+```
+See the [paper](http://arxiv.org/abs/1511.07401) for more details on training.
+
+## Requirements
+The whole code is written in Lua, and requires [Torch7](http://torch.ch/) and [nngraph](http://github.com/torch/nngraph) packages. The training uses multi-threading for speed up.
