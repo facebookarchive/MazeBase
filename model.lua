@@ -161,20 +161,12 @@ local function build_model_conv()
     local in_bow2d = nn.View(g_opts.conv_sz, g_opts.conv_sz, g_opts.hidsz):setNumInputDims(2)(in_bow)
     local in_conv = nn.Transpose({2,4})(in_bow2d)
 
-    if g_opts.conv_nonlin == 1 then
-        in_conv = nonlin()(in_conv)
-    end
-
     local conv_out = build_conv(in_conv)
 
     local cont_emb2d = nn.LookupTable(g_opts.nwords, g_opts.hidsz)(context)
     local cont_emb = nn.View(-1, g_opts.max_attributes, g_opts.hidsz):setNumInputDims(2)(cont_emb2d)
     local cont_bow = nn.Sum(3)(cont_emb) -- sum over attributes
     local cont_fc = nn.View(-1):setNumInputDims(2)(cont_bow)
-
-    if g_opts.conv_nonlin == 1 then
-        cont_fc = nonlin()(cont_fc)
-    end
 
     local cont_out = nonlin()(nn.Linear(g_opts.memsize * g_opts.hidsz, g_opts.hidsz)(cont_fc))
 
