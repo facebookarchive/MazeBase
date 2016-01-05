@@ -29,9 +29,13 @@ Currently, there are 10 different tasks implemented, but it is possible to add n
 
 Examples of each tasks are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the tasks are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/games/config/game_config.lua), which can be easily modified.
 
-## Training
+## Training an agent using neural networks
 We also provide a code for training different types of neural models with policy gradient method. Training uses CPUs with multi-threading for speed up.
-The implemented models are (i) multi-layer neural network, (ii) convolutional neural network, and (iii) [end-to-end memory network](http://arxiv.org/abs/1503.08895).
+The implemented models are
+
+1. multi-layer neural network
+2. convolutional neural network
+3. [end-to-end memory network](http://arxiv.org/abs/1503.08895).
 
 For example, running the following command will train a 2-layer network on MultiGoals.
 ```
@@ -44,4 +48,5 @@ th main.lua -h
 See the [paper](http://arxiv.org/abs/1511.07401) for more details on training.
 
 ## Requirements
-The whole code is written in Lua, and requires [Torch7](http://torch.ch/) and [nngraph](http://github.com/torch/nngraph) packages. The training uses multi-threading for speed up.
+The whole code is written in Lua, and requires [Torch7](http://torch.ch/) and [nngraph](http://github.com/torch/nngraph) packages.
+The training uses multi-threading for speed up.

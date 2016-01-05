@@ -182,5 +182,12 @@ end
 -- Agents call this function to perform action
 function MazeAgent:act(action_id)
     local f = self.actions[action_id]
+    if f == nil then
+       print('Available actions are: ')
+       for k,v in pairs(self.actions) do
+	  print(k)
+       end
+       error('Could not find action for action_id: ' .. action_id)
+    end
     f(self)
 end

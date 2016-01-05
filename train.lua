@@ -19,8 +19,11 @@ function train_batch()
         if active[t]:sum() == 0 then break end
         input[t] = batch_input(batch, active[t], t)
         local out = g_model:forward(input[t])
-        if not pcall(function() action[t] = torch.multinomial(torch.exp(out[1]), 1) end) then
-            -- for some reason multinomial fails sometimes
+	-- for some reason multinomial fails sometimes
+        if not pcall(function() 
+	      action[t] = torch.multinomial(torch.exp(out[1]), 1) 
+		    end) 
+	then
             action[t] = torch.multinomial(torch.ones(out[1]:size()),1)
         end
         batch_act(batch, action[t]:view(-1), active[t])
