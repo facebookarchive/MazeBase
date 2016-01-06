@@ -29,7 +29,7 @@ Currently, there are 10 different tasks (sometimes we would call them "game") im
 
 Examples of each tasks are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the tasks are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/games/config/game_config.lua), which can be easily modified.
 
-## Using Game Environment in Torch
+## Using Game Environment
 To use the game environment as standalone in Torch, first include it with 
 ``` 
 dofile('games/init.lua') 
@@ -54,7 +54,12 @@ If there are more than one games, it will randomly pick one. Now, the current ga
 ```
 s = g:to_sentence()
 ```
-which would return a tensor containing words (encoded by `g_vocab` dictionary) describing each item in the game. Next, an action can be performed by calling
+which would return a tensor containing words (encoded by `g_vocab` dictionary) describing each item in the game. If you have display package installed, you can see the game on your browser by doing
+```
+g_disp = require('display')
+g_disp.image(g.map:to_image())
+```
+Next, an action can be performed by calling
 ```
 g:act(action)
 ```
@@ -65,7 +70,8 @@ g.agent = g.agents[i]
 before calling `g:act()`. After the action is completed, `g:update()` must be called so that the game will update its internal state.
 Finally, we can check if the game finished by calling `g:is_active()`.
 
-## Creating a new task
+## Creating a new game
+
 
 ## Training an agent using neural networks
 We also provide a code for training different types of neural models with policy gradient method. Training uses CPUs with multi-threading for speed up.
