@@ -126,6 +126,8 @@ The first two numbers define lower and upper bounds of the parameter. The actual
 local blockspct = torch.Tensor{0,.05,0,.2,.01}
 local waterpct = torch.Tensor{0,.05,0,.2,.01}
 ```
+There are other generic parameters has be set, but see the actual [config file](http://github.com/facebook/MazeBase/blob/master/games/config/singlegoal.lua) for detail. Now we are ready to use the game!
+
 
 ## Training an agent using neural networks
 We also provide a code for training different types of neural models with policy gradient method. Training uses CPUs with multi-threading for speed up.
