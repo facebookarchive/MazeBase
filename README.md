@@ -44,6 +44,33 @@ th main.lua --hidsz 20 --model mlp --nlayers 2 --epochs 100 --game MultiGoals --
 To see all the command line options, run 
 ```
 th main.lua -h
+  --hidsz             the size of the internal state vector [20]
+  --nonlin            non-linearity type: tanh | relu | none [tanh]
+  --model             model type: mlp | conv | memnn [memnn]
+  --init_std          STD of initial weights [0.2]
+  --max_attributes    maximum number of attributes of each item [6]
+  --nlayers           the number of layers in MLP [2]
+  --convdim           the number of feature maps in convolutional layers [20]
+  --conv_sz           spatial scope of the input to convnet and MLP [19]
+  --memsize           size of the memory in MemNN [20]
+  --nhop              the number of hops in MemNN [3]
+  --nagents           the number of agents [1]
+  --nactions          the number of agent actions [11]
+  --max_steps         force to end the game after this many steps [20]
+  --games_config_path configuration file for games [games/config/game_config.lua]
+  --game              can specify a single game []
+  --optim             optimization method: rmsprop | sgd [rmsprop]
+  --lrate             learning rate [0.001]
+  --max_grad_norm     gradient clip value [0]
+  --alpha             coefficient of baseline term in the cost function [0.03]
+  --epochs            the number of training epochs [100]
+  --nbatches          the number of mini-batches in one epoch [100]
+  --batch_size        size of mini-batch (the number of parallel games) in each thread [32]
+  --nworker           the number of threads used for training [16]
+  --beta              parameter of RMSProp [0.97]
+  --eps               parameter of RMSProp [1e-06]
+  --save              file name to save the model []
+  --load              file name to load the model []
 ```
 See the [paper](http://arxiv.org/abs/1511.07401) for more details on training.
 
