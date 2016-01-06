@@ -29,8 +29,24 @@ Currently, there are 10 different tasks (sometimes we would call them "game") im
 
 Examples of each tasks are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the tasks are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/games/config/game_config.lua), which can be easily modified.
 
-## Using Game API
-First, a new game instance should be created by calling
+## Using Game Environment in Torch
+To use the game environment as standalone in Torch, first include it with 
+``` 
+dofile('games/init.lua') 
+```
+Then we have to set which config file to use. Here we are using a config that used in our [paper](http://arxiv.org/abs/1511.07401)
+```
+g_opts = {games_config_path = 'games/config/game_config.lua'}
+```
+Next, we call this function to create a dictionary with all necessary words used in the game
+```
+g_init_vocab()              
+```
+Finally, initialize the game environment with
+```
+g_init_game()
+```
+Now we can create a new game instance by calling
 ```
 g = new_game()
 ```
