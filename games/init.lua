@@ -182,7 +182,7 @@ function g_init_game()
 end
 
 function new_game()
-    if g_opts.game == '' then
+    if g_opts.game == nil or g_opts.game == '' then
         return g_factory:init_random_game()
     else
        return g_factory:init_game(g_opts.game)
