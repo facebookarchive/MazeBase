@@ -59,6 +59,9 @@ which would return a tensor containing words (encoded by `g_vocab` dictionary) d
 g_disp = require('display')
 g_disp.image(g.map:to_image())
 ```
+
+![sample_output](readme_images/demo_api.png "Example of display")
+
 Next, an action can be performed by calling
 ```
 g:act(action)
