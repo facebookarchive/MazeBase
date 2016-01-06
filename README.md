@@ -31,31 +31,31 @@ Examples of each tasks are shown in this [video](https://youtu.be/kwnp8jFRi5E). 
 
 ## Using Game Environment
 To use the game environment as standalone in Torch, first include it with 
-``` 
+```lua
 dofile('games/init.lua') 
 ```
 Then we have to set which config file to use. Here we are using a config that used in our [paper](http://arxiv.org/abs/1511.07401)
-```
+```lua
 g_opts = {games_config_path = 'games/config/game_config.lua'}
 ```
 Next, we call this function to create a dictionary with all necessary words used in the game
-```
+```lua
 g_init_vocab()              
 ```
 Finally, initialize the game environment with
-```
+```lua
 g_init_game()
 ```
 Now we can create a new game instance by calling
-```
+```lua
 g = new_game()
 ```
 If there are more than one games, it will randomly pick one. Now, the current game state can be retrieved by calling 
-```
+```lua
 s = g:to_sentence()
 ```
 which would return a tensor containing words (encoded by `g_vocab` dictionary) describing each item in the game. If you have display package installed, you can see the game on your browser by doing
-```
+```lua
 g_disp = require('display')
 g_disp.image(g.map:to_image())
 ```
@@ -63,18 +63,69 @@ g_disp.image(g.map:to_image())
 ![sample_output](readme_images/demo_api.png "Example of display")
 
 Next, an action can be performed by calling
-```
+```lua
 g:act(action)
 ```
 where `action` is the index of the action. The list of possible actions are in `g.agent.action_names`. When there are multiple agents in the game, we can choose the agent to perform the action by doing
-```
+```lua
 g.agent = g.agents[i]
 ```
 before calling `g:act()`. After the action is completed, `g:update()` must be called so that the game will update its internal state.
-Finally, we can check if the game finished by calling `g:is_active()`.
+Finally, we can check if the game finished by calling `g:is_active()`. Run `demo_api.lua` to see the game playing with random actions.
 
 ## Creating a new game
-
+Here we demonstrate how a new game can be added. Let us create a very simple game where an agent has to reach the goal. First, we create a file named `SingleGoal.lua`. In it, a game class has to be created
+```lua
+local SingleGoal, parent = torch.class('SingleGoal', 'MazeBase')
+```
+Next, we have to construct the game. In this case, we only need a goal item placed in a random location: 
+```lua
+function SingleGoal:__init(opts, vocab)
+    parent.__init(self, opts, vocab)
+    self:add_default_items()
+    self.goal = self:place_item_rand({type = 'goal'})
+end
+```
+The game rule is to finish when the agent reaches the goal, which can be specified by
+```lua
+function SingleGoal:update()
+    parent.update(self)
+    if not self.finished then
+        if self.goal.loc.y == self.agent.loc.y and self.goal.loc.x == self.agent.loc.x then
+            self.finished = true
+        end
+    end
+end
+```
+which checks if the locations of the agent and the goal overlap, and sets a flag when it is true. Finally, we have to give a proper reward when the goal is reached:
+```lua
+function SingleGoal:get_reward()
+    if self.finished then
+        return -self.costs.goal
+    else
+        return parent.get_reward(self)
+    end
+end
+```
+Now, we include out game file in `games/init.lua` by adding the following line
+```lua
+paths.dofile('SingleGoal.lua')
+```
+Also, the following lines has to be added inside `init_game_opts` function:
+```lua
+games.SingleGoal = SingleGoal
+helpers.SingleGoal = OptsHelper
+```
+Finally, we need a config file for our new game. Let us create `singlegoal.lua` file in `games/config`. The main parameters of the game is the grid size:
+```lua
+local mapH = torch.Tensor{5,5,5,10,1}
+local mapW = torch.Tensor{5,5,5,10,1}
+```
+The first two numbers define lower and upper bounds of the parameter. The actual grid size will be uniformly sampled from this range. The remaining three numbers for curriculum training. In the easiest (hardest) case, the upper bound will be set to 3rd (4th) number. 5th number is the step size for changing the upper bound. In the same way, we define a percentage of grid cells to contain a block or water:
+```lua
+local blockspct = torch.Tensor{0,.05,0,.2,.01}
+local waterpct = torch.Tensor{0,.05,0,.2,.01}
+```
 
 ## Training an agent using neural networks
 We also provide a code for training different types of neural models with policy gradient method. Training uses CPUs with multi-threading for speed up.
