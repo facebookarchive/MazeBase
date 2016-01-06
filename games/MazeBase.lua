@@ -244,6 +244,7 @@ end
 -- Tensor representation that can be feed to a model
 function MazeBase:to_sentence(sentence)
     local count=0
+    local sentence = sentence or torch.Tensor(#self.items, g_opts.max_attributes):fill(self.vocab['nil'])
     for i = 1, #self.items do
         if not self.items[i].attr._invisible then
             count= count + 1
@@ -251,6 +252,7 @@ function MazeBase:to_sentence(sentence)
             self:to_sentence_item(self.items[i], sentence[count])
         end
     end
+    return sentence
 end
 
 -- 2D map representation for conv model
