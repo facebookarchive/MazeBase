@@ -1,19 +1,26 @@
--- Copyright (c) 2015-present, Facebook, Inc.
--- All rights reserved.
---
--- This source code is licensed under the BSD-style license found in the
--- LICENSE file in the root directory of this source tree. An additional grant 
--- of patent rights can be found in the PATENTS file in the same directory.
-
 if not g_opts then g_opts = {} end
+g_opts.curriculum = 1
+-- minimum number of games since the last reset to update hardness:
+g_opts.curriculum_min_count = 1000
+-- if success rate is over this, make game harder:
+g_opts.curriculum_pct_high = .8
+-- if success rate is under this, make game easier:
+g_opts.curriculum_pct_low = .2
+-- if the total number of games is bigger than this,
+-- freeze and get hardest:
+g_opts.curriculum_total_count = 10
+
+
 g_opts.multigames = {}
 -------------------
 --some shared RangeOpts
 --current min, current max, min max, max max, increment
-local mapH = torch.Tensor{5,10,5,10,1}
-local mapW = torch.Tensor{5,10,5,10,1}
-local blockspct = torch.Tensor{0,.2,0,.2,.01}
-local waterpct = torch.Tensor{0,.2,0,.2,.01}
+local mapH = torch.Tensor{5,5,5,10,1}
+local mapW = torch.Tensor{5,5,5,10,1}
+--local blockspct = torch.Tensor{0,.2,0,.2,.01}
+--local waterpct = torch.Tensor{0,.2,0,.2,.01}
+local blockspct = torch.Tensor{0,.05,0,.2,.01}
+local waterpct = torch.Tensor{0,.05,0,.2,.01}
 
 
 -------------------
@@ -27,10 +34,24 @@ sso.costs.block = 1000
 sso.costs.water = 0.2
 sso.costs.corner = 0
 sso.costs.step = 0.1
+sso.costs.BumpEnemy = 1
+sso.costs.pushableblock = 1000
 ---------------------
+sso.max_steps = 40
+sso.talk_words = 4
+sso.memsize = -1
+sso.vision_dist = 1.5
+sso.vision_persist = 1
 sso.crumb_action = 0
+sso.push_action = 1
 sso.flag_visited = 1
+sso.timer_max = 0
+sso.timer_visible = 1
+sso.water_risk_factor = 0
+sso.water_penalty = 0
 sso.enable_boundary = 0
+sso.enable_corners = 1
+sso.max_attributes = g_opts.max_attributes or 6
 
 -------------------------------------------------------
 -- MultiGoals:
@@ -130,4 +151,104 @@ LightKeyOpts.RangeOpts = LightKeyRangeOpts
 LightKeyOpts.StaticOpts = LightKeyStaticOpts
 
 g_opts.multigames.LightKey = LightKeyOpts
+
+
+
+
+-------------------------------------------------------
+-- Goto:
+local GotoRangeOpts = {}
+GotoRangeOpts.mapH = mapH:clone()
+GotoRangeOpts.mapW = mapW:clone()
+GotoRangeOpts.blockspct = blockspct:clone()
+GotoRangeOpts.waterpct = waterpct:clone()
+
+local GotoStaticOpts = {}
+for i,j in pairs(sso) do GotoStaticOpts[i] = j end
+
+GotoOpts ={}
+GotoOpts.RangeOpts = GotoRangeOpts
+GotoOpts.StaticOpts = GotoStaticOpts
+
+
+g_opts.multigames.Goto = GotoOpts
+
+-------------------------------------------------------
+-- GotoHidden:
+local GotoHiddenRangeOpts = {}
+GotoHiddenRangeOpts.mapH = mapH:clone()
+GotoHiddenRangeOpts.mapW = mapW:clone()
+GotoHiddenRangeOpts.blockspct = blockspct:clone()
+GotoHiddenRangeOpts.waterpct = waterpct:clone()
+GotoHiddenRangeOpts.ngoals = torch.Tensor{1,3,3,6,1}
+
+local GotoHiddenStaticOpts = {}
+for i,j in pairs(sso) do GotoHiddenStaticOpts[i] = j end
+
+GotoHiddenOpts ={}
+GotoHiddenOpts.RangeOpts = GotoHiddenRangeOpts
+GotoHiddenOpts.StaticOpts = GotoHiddenStaticOpts
+
+
+g_opts.multigames.GotoHidden = GotoHiddenOpts
+
+
+-------------------------------------------------------
+-- PushBlock:
+
+--note:  these are not the shared range opts!!!
+local PushBlockRangeOpts = {}
+PushBlockRangeOpts.mapH = torch.Tensor{3,3,3,7,1}
+PushBlockRangeOpts.mapW = torch.Tensor{3,3,3,7,1}
+PushBlockRangeOpts.blockspct = torch.Tensor{0,0,0,.1,.01}
+PushBlockRangeOpts.waterpct = torch.Tensor{0,0,0,.1,.01}
+
+local PushBlockStaticOpts = {}
+for i,j in pairs(sso) do PushBlockStaticOpts[i] = j end
+
+PushBlockOpts ={}
+PushBlockOpts.RangeOpts = PushBlockRangeOpts
+PushBlockOpts.StaticOpts = PushBlockStaticOpts
+
+g_opts.multigames.PushBlock = PushBlockOpts
+
+
+-------------------------------------------------------
+-- PushBlockCardinal:
+
+--note:  these are not the shared range opts!!!
+local PushBlockCardinalRangeOpts = {}
+PushBlockCardinalRangeOpts.mapH = torch.Tensor{3,3,3,7,1}
+PushBlockCardinalRangeOpts.mapW = torch.Tensor{3,3,3,7,1}
+PushBlockCardinalRangeOpts.blockspct = torch.Tensor{0,0,0,.1,.01}
+PushBlockCardinalRangeOpts.waterpct = torch.Tensor{0,0,0,.1,.01}
+
+local PushBlockCardinalStaticOpts = {}
+for i,j in pairs(sso) do PushBlockCardinalStaticOpts[i] = j end
+
+PushBlockCardinalOpts ={}
+PushBlockCardinalOpts.RangeOpts = PushBlockCardinalRangeOpts
+PushBlockCardinalOpts.StaticOpts = PushBlockCardinalStaticOpts
+
+g_opts.multigames.PushBlockCardinal = PushBlockCardinalOpts
+
+
+-------------------------------------------------------
+-- BlockedDoor:
+local BlockedDoorRangeOpts = {}
+BlockedDoorRangeOpts.mapH = mapH:clone()
+BlockedDoorRangeOpts.mapW = mapW:clone()
+BlockedDoorRangeOpts.blockspct = blockspct:clone()
+BlockedDoorRangeOpts.waterpct = waterpct:clone()
+
+local BlockedDoorStaticOpts = {}
+for i,j in pairs(sso) do BlockedDoorStaticOpts[i] = j end
+
+BlockedDoorOpts ={}
+BlockedDoorOpts.RangeOpts = BlockedDoorRangeOpts
+BlockedDoorOpts.StaticOpts = BlockedDoorStaticOpts
+
+g_opts.multigames.BlockedDoor = BlockedDoorOpts
+
+
 return g_opts
