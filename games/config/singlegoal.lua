@@ -5,8 +5,6 @@ g_opts.multigames = {}
 --current min, current max, min max, max max, increment
 local mapH = torch.Tensor{5,5,5,10,1}
 local mapW = torch.Tensor{5,5,5,10,1}
---local blockspct = torch.Tensor{0,.2,0,.2,.01}
---local waterpct = torch.Tensor{0,.2,0,.2,.01}
 local blockspct = torch.Tensor{0,.05,0,.2,.01}
 local waterpct = torch.Tensor{0,.05,0,.2,.01}
 
