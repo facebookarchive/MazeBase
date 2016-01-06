@@ -14,8 +14,8 @@ Each game is played in a 2D rectangular grid. Each location in the grid can be e
 
 The environment is presented to the agent as a list of sentences, each describing an item in the game. For example, an agent might see “Block at [-1,4]. Switch at [+3,0] with blue color. Info: change switch to red.” However, note that we use egocentric spatial coordinates, meaning that the environment updates the locations of each object after an action. The environments are generated randomly with some distribution on the various items. For example, we usually specify a uniform distribution over height and width, and a percentage of wall blocks and water blocks.
 
-## Tasks
-Currently, there are 10 different tasks implemented, but it is possible to add new tasks. The existing tasks are:
+## Tasks/Games
+Currently, there are 10 different tasks (sometimes we would call them "game") implemented, but it is possible to add new tasks. The existing tasks are:
 - **Multigoals:** the agent is given an ordered list of goals as “Info”, and needs to visit the goals in that order.
 - **Conditional Goals:** the agent must visit a destination goal that is conditional on the state of a switch. The “Info” is of the form “go to goal 4 if the switch is colored red, else go to goal 2”.
 - **Exclusion:** the “Info” in this game specifies a list of goals to avoid. The agent should visit all other unmentioned goals.
@@ -28,6 +28,28 @@ Currently, there are 10 different tasks implemented, but it is possible to add n
 - **Blocked door:** the agent should navigate to a goal which may lie on the opposite side of a wall of blocks, as in the Light Key game. However, a PushableBlock blocks the gap in the wall instead of a door.
 
 Examples of each tasks are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the tasks are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/games/config/game_config.lua), which can be easily modified.
+
+## Using Game API
+First, a new game instance should be created by calling
+```
+g = new_game()
+```
+If there are more than one games, it will randomly pick one. Now, the current game state can be retrieved by calling 
+```
+s = g:to_sentence()
+```
+which would return a tensor containing words (encoded by `g_vocab` dictionary) describing each item in the game. Next, an action can be performed by calling
+```
+g:act(action)
+```
+where `action` is the index of the action. The list of possible actions are in `g.agent.action_names`. When there are multiple agents in the game, we can choose the agent to perform the action by doing
+```
+g.agent = g.agents[i]
+```
+before calling `g:act()`. After the action is completed, `g:update()` must be called so that the game will update its internal state.
+Finally, we can check if the game finished by calling `g:is_active()`.
+
+## Creating a new task
 
 ## Training an agent using neural networks
 We also provide a code for training different types of neural models with policy gradient method. Training uses CPUs with multi-threading for speed up.
@@ -72,8 +94,11 @@ th main.lua -h
   --save              file name to save the model []
   --load              file name to load the model []
 ```
-See the [paper](http://arxiv.org/abs/1511.07401) for more details on training.
+See the [paper](http://arxiv.org/abs/1511.07401) for more details on training. After training, you can see model playing by calling function ```test()``` which will display the game in a browser window.
 
 ## Requirements
 The whole code is written in Lua, and requires [Torch7](http://torch.ch/) and [nngraph](http://github.com/torch/nngraph) packages.
-The training uses multi-threading for speed up.
+The training uses multi-threading for speed up. Display package is necessary for visualizing the game play, which can be installed by 
+```
+luarocks install display
+```
