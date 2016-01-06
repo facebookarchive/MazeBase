@@ -244,7 +244,7 @@ end
 -- Tensor representation that can be feed to a model
 function MazeBase:to_sentence(sentence)
     local count=0
-    local sentence = sentence or torch.Tensor(#self.items, g_opts.max_attributes):fill(self.vocab['nil'])
+    local sentence = sentence or torch.Tensor(#self.items, self.max_attributes):fill(self.vocab['nil'])
     for i = 1, #self.items do
         if not self.items[i].attr._invisible then
             count= count + 1

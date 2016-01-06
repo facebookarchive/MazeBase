@@ -34,7 +34,6 @@ sso.costs.block = 1000
 sso.costs.water = 0.2
 sso.costs.corner = 0
 sso.costs.step = 0.1
-sso.costs.BumpEnemy = 1
 sso.costs.pushableblock = 1000
 ---------------------
 sso.crumb_action = 0
