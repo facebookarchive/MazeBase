@@ -5,14 +5,14 @@
 -- LICENSE file in the root directory of this source tree. An additional grant 
 -- of patent rights can be found in the PATENTS file in the same directory.
 
-function test(g)
-    local g = g or nil
+function test()
     local dummy = torch.Tensor(g_opts.nagents, g_opts.hidsz):fill(0.1)
     local batch = batch_init(1)
-    if g then batch[1] = g end
     local reward = 0
     for t = 1, g_opts.max_steps do
-        g_disp.image(batch[1].map:to_image(), {win = 'maze' .. g_opts.disp})
+        if g_disp then
+            g_disp.image(batch[1].map:to_image(), {win = 'maze' .. g_opts.disp})
+        end
         local active = batch_active(batch)
         if active:sum() == 0 then break end
         local stat = '[' .. t .. ']\t'
@@ -35,7 +35,9 @@ function test(g)
         print(stat)
         os.execute('sleep 0.2')
     end
-    g_disp.image(batch[1].map:to_image(), {win = 'maze' .. g_opts.disp})
+    if g_disp then
+        g_disp.image(batch[1].map:to_image(), {win = 'maze' .. g_opts.disp})
+    end
     print('reward:', reward)
     print('success:', batch_success(batch)[1])
 end
