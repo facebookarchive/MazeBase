@@ -86,7 +86,7 @@ function SingleGoal:__init(opts, vocab)
     self.goal = self:place_item_rand({type = 'goal'})
 end
 ```
-Function `place_item_rand` puts the item on random empty location. It is possible set location using `place_item` function. An item is defined by a table containing its properties such as type and name. Here, we only set the type of item to goal, but it is possible to include any number of attributes (e.g. color, name, ...).
+Function `place_item_rand` puts the item on random empty location. It is possible set location using `place_item` function. The argument to this function is a table containing its properties such as type and name. Here, we only set the type of item to goal, but it is possible to include any number of attributes (e.g. color, name, etc.).
 
 The game rule is to finish when the agent reaches the goal, which can be specified by
 ```lua
