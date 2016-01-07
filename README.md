@@ -1,5 +1,5 @@
 # MazeBase: a sandbox for learning from games
-This code is for a simple 2D game environment that can be used in developing reinforcement learning models. It is designed to be compact but flexible, enabling the implementation of diverse set of tasks. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training. The code is in Lua+Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior. For more details, see our [paper](http://arxiv.org/abs/1511.07401).
+This code is for a simple 2D game environment that can be used in developing reinforcement learning models. It is designed to be compact but flexible, enabling the implementation of diverse set of games. Furthermore, it offers precise tuning of the game difficulty, facilitating the construction of curricula to aid training. The code is in Lua+Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior. For more details, see our [paper](http://arxiv.org/abs/1511.07401).
 
 ## Environment
 Each game is played in a 2D rectangular grid. Each location in the grid can be empty, or may contain one or more items such as:
@@ -9,13 +9,13 @@ Each game is played in a 2D rectangular grid. Each location in the grid can be e
 - **Door:** a door has a color, matched to a particular switch. The agent may only move to the door’s grid location if the state of the switch matches the state of the door.
 - **PushableBlock:** This block is impassable, but can be moved with a separate “push” actions. The block moves in the direction of the push, and the agent must be located adjacent to the block opposite the direction of the push.
 - **Corner:** This item simply marks a corner of the board.
-- **Goal:** depending on the task, one or more goals may exist, each named individually.
-- **Info:** these items do not have a grid location, but can specify a task or give information necessary for its completion.
+- **Goal:** depending on the game, one or more goals may exist, each named individually.
+- **Info:** these items do not have a grid location, but can specify a  or give information necessary for its completion.
 
 The environment is presented to the agent as a list of sentences, each describing an item in the game. For example, an agent might see “Block at [-1,4]. Switch at [+3,0] with blue color. Info: change switch to red.” However, note that we use egocentric spatial coordinates, meaning that the environment updates the locations of each object after an action. The environments are generated randomly with some distribution on the various items. For example, we usually specify a uniform distribution over height and width, and a percentage of wall blocks and water blocks.
 
-## Tasks/Games
-Currently, there are 10 different tasks (or games) implemented, but it is possible to add new tasks. The existing tasks are:
+## Games
+Currently, there are 10 different games implemented, but it is possible to add new games. The existing games are:
 - **Multigoals:** the agent is given an ordered list of goals as “Info”, and needs to visit the goals in that order.
 - **Conditional Goals:** the agent must visit a destination goal that is conditional on the state of a switch. The “Info” is of the form “go to goal 4 if the switch is colored red, else go to goal 2”.
 - **Exclusion:** the “Info” in this game specifies a list of goals to avoid. The agent should visit all other unmentioned goals.
@@ -27,7 +27,7 @@ Currently, there are 10 different tasks (or games) implemented, but it is possib
 - **Push block cardinal:** the agent needs to push a Pushable block so that it is on a specified edge of the maze, e.g. the left edge. Any location along the edge is acceptable.
 - **Blocked door:** the agent should navigate to a goal which may lie on the opposite side of a wall of blocks, as in the Light Key game. However, a PushableBlock blocks the gap in the wall instead of a door.
 
-Examples of each tasks are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the tasks are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/games/config/game_config.lua), which can be easily modified.
+Examples of each games are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the games are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/games/config/game_config.lua), which can be easily modified.
 
 ## Using Game Environment
 To use the game environment as standalone in Torch, first include it with 
