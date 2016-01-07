@@ -1,5 +1,5 @@
 # MazeBase: a sandbox for learning from games
-This code is for a simple 2D game environment that can be used in developing reinforcement learning models. It is designed to be compact but flexible, enabling the implementation of diverse set of tasks. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training. The code is in Lua+Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior.
+This code is for a simple 2D game environment that can be used in developing reinforcement learning models. It is designed to be compact but flexible, enabling the implementation of diverse set of tasks. Furthermore, it offers precise tuning of the task difficulty, facilitating the construction of curricula to aid training. The code is in Lua+Torch, and it offers rapid prototyping of games and is easy to connect to models that control the agent’s behavior. For more details, see our [paper](http://arxiv.org/abs/1511.07401).
 
 ## Environment
 Each game is played in a 2D rectangular grid. Each location in the grid can be empty, or may contain one or more items such as:
@@ -15,7 +15,7 @@ Each game is played in a 2D rectangular grid. Each location in the grid can be e
 The environment is presented to the agent as a list of sentences, each describing an item in the game. For example, an agent might see “Block at [-1,4]. Switch at [+3,0] with blue color. Info: change switch to red.” However, note that we use egocentric spatial coordinates, meaning that the environment updates the locations of each object after an action. The environments are generated randomly with some distribution on the various items. For example, we usually specify a uniform distribution over height and width, and a percentage of wall blocks and water blocks.
 
 ## Tasks/Games
-Currently, there are 10 different tasks (sometimes we would call them "game") implemented, but it is possible to add new tasks. The existing tasks are:
+Currently, there are 10 different tasks (or games) implemented, but it is possible to add new tasks. The existing tasks are:
 - **Multigoals:** the agent is given an ordered list of goals as “Info”, and needs to visit the goals in that order.
 - **Conditional Goals:** the agent must visit a destination goal that is conditional on the state of a switch. The “Info” is of the form “go to goal 4 if the switch is colored red, else go to goal 2”.
 - **Exclusion:** the “Info” in this game specifies a list of goals to avoid. The agent should visit all other unmentioned goals.
@@ -34,7 +34,7 @@ To use the game environment as standalone in Torch, first include it with
 ```lua
 dofile('games/init.lua') 
 ```
-Then we have to set which config file to use. Here we are using a config that used in our [paper](http://arxiv.org/abs/1511.07401)
+Then we have to set which config file to use. Here we are using the config file that used in our [paper](http://arxiv.org/abs/1511.07401)
 ```lua
 g_opts = {games_config_path = 'games/config/game_config.lua'}
 ```
@@ -50,7 +50,7 @@ Now we can create a new game instance by calling
 ```lua
 g = new_game()
 ```
-If there are more than one games, it will randomly pick one. Now, the current game state can be retrieved by calling 
+If there are more than one game, it will randomly pick one. Now, the current game state can be retrieved by calling 
 ```lua
 s = g:to_sentence()
 ```
@@ -71,14 +71,14 @@ where `action` is the index of the action. The list of possible actions are in `
 g.agent = g.agents[i]
 ```
 before calling `g:act()`. After the action is completed, `g:update()` must be called so that the game will update its internal state.
-Finally, we can check if the game finished by calling `g:is_active()`. Run `demo_api.lua` to see the game playing with random actions.
+Finally, we can check if the game is finished by calling `g:is_active()`. You can run `demo_api.lua` to see the game playing with random actions.
 
 ## Creating a new game
 Here we demonstrate how a new game can be added. Let us create a very simple game where an agent has to reach the goal. First, we create a file named `SingleGoal.lua`. In it, a game class has to be created
 ```lua
 local SingleGoal, parent = torch.class('SingleGoal', 'MazeBase')
 ```
-Next, we have to construct the game. In this case, we only need a goal item placed in a random location: 
+Next, we have to construct the game items. In this case, we only need a goal item placed at a random location: 
 ```lua
 function SingleGoal:__init(opts, vocab)
     parent.__init(self, opts, vocab)
@@ -86,9 +86,9 @@ function SingleGoal:__init(opts, vocab)
     self.goal = self:place_item_rand({type = 'goal'})
 end
 ```
-Function `place_item_rand` puts the item on random empty location. It is possible set location using `place_item` function. The argument to this function is a table containing its properties such as type and name. Here, we only set the type of item to goal, but it is possible to include any number of attributes (e.g. color, name, etc.).
+Function `place_item_rand` puts the item on empty random location. But it is possible specify the location using `place_item` function. The argument to this function is a table containing item's properties such as type and name. Here, we only set the type of item to goal, but it is possible to include any number of attributes (e.g. color, name, etc.).
 
-The game rule is to finish when the agent reaches the goal, which can be specified by
+The game rule is to finish when the agent reaches the goal, which can be achieved by changing `update` function to
 ```lua
 function SingleGoal:update()
     parent.update(self)
@@ -99,17 +99,17 @@ function SingleGoal:update()
     end
 end
 ```
-which checks if the locations of the agent and the goal overlap, and sets a flag when it is true. Finally, we have to give a proper reward when the goal is reached:
+This will check if the agent's location is the same as the goal, and sets a flag when it is true. Finally, we have to give a proper reward when the goal is reached:
 ```lua
 function SingleGoal:get_reward()
     if self.finished then
-        return -self.costs.goal
+        return -self.costs.goal -- this will be set in config file
     else
         return parent.get_reward(self)
     end
 end
 ```
-Now, we include out game file in `games/init.lua` by adding the following line
+Now, we include our game file in `games/init.lua` by adding the following line
 ```lua
 paths.dofile('SingleGoal.lua')
 ```
