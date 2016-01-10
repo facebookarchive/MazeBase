@@ -1,26 +1,13 @@
 if not g_opts then g_opts = {} end
-g_opts.curriculum = 1
--- minimum number of games since the last reset to update hardness:
-g_opts.curriculum_min_count = 1000
--- if success rate is over this, make game harder:
-g_opts.curriculum_pct_high = .8
--- if success rate is under this, make game easier:
-g_opts.curriculum_pct_low = .2
--- if the total number of games is bigger than this,
--- freeze and get hardest:
-g_opts.curriculum_total_count = 10
-
 
 g_opts.multigames = {}
 -------------------
 --some shared RangeOpts
 --current min, current max, min max, max max, increment
-local mapH = torch.Tensor{5,5,5,10,1}
-local mapW = torch.Tensor{5,5,5,10,1}
---local blockspct = torch.Tensor{0,.2,0,.2,.01}
---local waterpct = torch.Tensor{0,.2,0,.2,.01}
-local blockspct = torch.Tensor{0,.05,0,.2,.01}
-local waterpct = torch.Tensor{0,.05,0,.2,.01}
+local mapH = torch.Tensor{5,10,5,10,1}
+local mapW = torch.Tensor{5,10,5,10,1}
+local blockspct = torch.Tensor{0,.2,0,.2,.01}
+local waterpct = torch.Tensor{0,.2,0,.2,.01}
 
 
 -------------------
@@ -50,7 +37,7 @@ MultiGoalsRangeOpts.mapH = mapH:clone()
 MultiGoalsRangeOpts.mapW = mapW:clone()
 MultiGoalsRangeOpts.blockspct = blockspct:clone()
 MultiGoalsRangeOpts.waterpct = waterpct:clone()
-MultiGoalsRangeOpts.ngoals = torch.Tensor{2,5,3,6,1}
+MultiGoalsRangeOpts.ngoals = torch.Tensor{2,6,3,6,1}
 MultiGoalsRangeOpts.ngoals_active = torch.Tensor{1,3,1,3,1}
 
 local MultiGoalsStaticOpts = {}
@@ -71,8 +58,8 @@ CondGoalsRangeOpts.mapH = mapH:clone()
 CondGoalsRangeOpts.mapW = mapW:clone()
 CondGoalsRangeOpts.blockspct = blockspct:clone()
 CondGoalsRangeOpts.waterpct = waterpct:clone()
-CondGoalsRangeOpts.ngoals = torch.Tensor{2,5,3,6,1}
-CondGoalsRangeOpts.ncolors = torch.Tensor{2,5,3,6,1}
+CondGoalsRangeOpts.ngoals = torch.Tensor{2,6,3,6,1}
+CondGoalsRangeOpts.ncolors = torch.Tensor{2,6,3,6,1}
 
 local CondGoalsStaticOpts = {}
 for i,j in pairs(sso) do CondGoalsStaticOpts[i] = j end
@@ -92,7 +79,7 @@ ExclusionRangeOpts.mapH = mapH:clone()
 ExclusionRangeOpts.mapW = mapW:clone()
 ExclusionRangeOpts.blockspct = blockspct:clone()
 ExclusionRangeOpts.waterpct = waterpct:clone()
-ExclusionRangeOpts.ngoals = torch.Tensor{2,5,3,6,1}
+ExclusionRangeOpts.ngoals = torch.Tensor{2,6,3,6,1}
 ExclusionRangeOpts.ngoals_active = torch.Tensor{1,3,1,3,0}
 
 local ExclusionStaticOpts = {}
@@ -113,7 +100,7 @@ SwitchesRangeOpts.mapW = mapW:clone()
 SwitchesRangeOpts.blockspct = blockspct:clone()
 SwitchesRangeOpts.waterpct = waterpct:clone()
 SwitchesRangeOpts.nswitches = torch.Tensor{1,5,1,5,0}
-SwitchesRangeOpts.ncolors = torch.Tensor{1,3,1,6,1}
+SwitchesRangeOpts.ncolors = torch.Tensor{1,6,1,6,1}
 
 local SwitchesStaticOpts = {}
 for i,j in pairs(sso) do SwitchesStaticOpts[i] = j end
@@ -170,7 +157,7 @@ GotoHiddenRangeOpts.mapH = mapH:clone()
 GotoHiddenRangeOpts.mapW = mapW:clone()
 GotoHiddenRangeOpts.blockspct = blockspct:clone()
 GotoHiddenRangeOpts.waterpct = waterpct:clone()
-GotoHiddenRangeOpts.ngoals = torch.Tensor{1,3,3,6,1}
+GotoHiddenRangeOpts.ngoals = torch.Tensor{1,6,3,6,1}
 
 local GotoHiddenStaticOpts = {}
 for i,j in pairs(sso) do GotoHiddenStaticOpts[i] = j end
@@ -188,10 +175,10 @@ g_opts.multigames.GotoHidden = GotoHiddenOpts
 
 --note:  these are not the shared range opts!!!
 local PushBlockRangeOpts = {}
-PushBlockRangeOpts.mapH = torch.Tensor{3,3,3,7,1}
-PushBlockRangeOpts.mapW = torch.Tensor{3,3,3,7,1}
-PushBlockRangeOpts.blockspct = torch.Tensor{0,0,0,.1,.01}
-PushBlockRangeOpts.waterpct = torch.Tensor{0,0,0,.1,.01}
+PushBlockRangeOpts.mapH = torch.Tensor{3,7,3,7,1}
+PushBlockRangeOpts.mapW = torch.Tensor{3,7,3,7,1}
+PushBlockRangeOpts.blockspct = torch.Tensor{0,0.1,0,.1,.01}
+PushBlockRangeOpts.waterpct = torch.Tensor{0,0.1,0,.1,.01}
 
 local PushBlockStaticOpts = {}
 for i,j in pairs(sso) do PushBlockStaticOpts[i] = j end
@@ -208,10 +195,10 @@ g_opts.multigames.PushBlock = PushBlockOpts
 
 --note:  these are not the shared range opts!!!
 local PushBlockCardinalRangeOpts = {}
-PushBlockCardinalRangeOpts.mapH = torch.Tensor{3,3,3,7,1}
-PushBlockCardinalRangeOpts.mapW = torch.Tensor{3,3,3,7,1}
-PushBlockCardinalRangeOpts.blockspct = torch.Tensor{0,0,0,.1,.01}
-PushBlockCardinalRangeOpts.waterpct = torch.Tensor{0,0,0,.1,.01}
+PushBlockCardinalRangeOpts.mapH = torch.Tensor{3,7,3,7,1}
+PushBlockCardinalRangeOpts.mapW = torch.Tensor{3,7,3,7,1}
+PushBlockCardinalRangeOpts.blockspct = torch.Tensor{0,0.1,0,.1,.01}
+PushBlockCardinalRangeOpts.waterpct = torch.Tensor{0,0.1,0,.1,.01}
 
 local PushBlockCardinalStaticOpts = {}
 for i,j in pairs(sso) do PushBlockCardinalStaticOpts[i] = j end
