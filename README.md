@@ -141,7 +141,7 @@ The implemented models are
 
 For example, running the following command will train a 2-layer network on MultiGoals.
 ```
-th main.lua --hidsz 20 --model mlp --nlayers 2 --epochs 100 --game MultiGoals --nactions 6 --nworkers 2
+th main.lua --hidsz 20 --model mlp --nlayers 2 --epochs 100 --game MultiGoals --nactions 6 --nworker 2
 ```
 To see all the command line options, run 
 ```
