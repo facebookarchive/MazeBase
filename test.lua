@@ -11,7 +11,7 @@ function test()
     local reward = 0
     for t = 1, g_opts.max_steps do
         if g_disp then
-            g_disp.image(batch[1].map:to_image(), {win = 'maze' .. g_opts.disp})
+            g_disp.image(batch[1].map:to_image(), {win = 'maze' .. g_opts.game})
         end
         local active = batch_active(batch)
         if active:sum() == 0 then break end
@@ -36,7 +36,7 @@ function test()
         os.execute('sleep 0.2')
     end
     if g_disp then
-        g_disp.image(batch[1].map:to_image(), {win = 'maze' .. g_opts.disp})
+        g_disp.image(batch[1].map:to_image(), {win = 'maze' .. g_opts.game})
     end
     print('reward:', reward)
     print('success:', batch_success(batch)[1])
