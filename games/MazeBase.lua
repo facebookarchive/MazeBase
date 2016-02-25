@@ -300,10 +300,10 @@ function MazeBase:to_map_onehot(sentence)
             end
             if not tofar then
             	local s = e:to_sentence(0, 0, true)
-            	for i = 1, #s dofile
-                	count = count + 1
-                	if count > sentence:size(1) then error('increase memsize!') end
-                	sentence[count] = self.vocab[s[i]] + d * self.nwords
+            	for i = 1, #s do
+                    count = count + 1
+                    if count > sentence:size(1) then error('increase memsize!') end
+                    sentence[count] = self.vocab[s[i]] + d * self.nwords
             	end
         	end
         end
