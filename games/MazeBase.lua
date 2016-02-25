@@ -15,7 +15,10 @@ function MazeBase:__init(opts, vocab)
     self.map = MazeMap(opts)
     self.max_attributes = opts.max_attributes
     self.vocab = vocab
-    -- overide this in child if no supervision is defined
+    self.nwords = 0
+    for i,j in pairs(self.vocab) do self.nwords = self.nwords+1  end
+    self.conv_sz = opts.conv_sz or 19 -- 10 * 2 - 1
+    -- overide this in child if no supervision is defined 
     self.has_supervision = true
     self.t = 0
     self.costs = {}
@@ -283,20 +286,26 @@ function MazeBase:to_map_onehot(sentence)
     for _, e in pairs(self.items) do
         if not e.attr._invisible then
             local d
+            local tofar = false
             if e.loc then
-                local dy = e.loc.y - self.agent.loc.y + torch.ceil(g_opts.conv_sz/2)
-                local dx = e.loc.x - self.agent.loc.x + torch.ceil(g_opts.conv_sz/2)
-                d = (dy - 1) * g_opts.conv_sz + dx - 1
+                local dy = e.loc.y - self.agent.loc.y + torch.ceil(self.conv_sz/2)
+                local dx = e.loc.x - self.agent.loc.x + torch.ceil(self.conv_sz/2)
+                if dx > self.conv_sz or dy > self.conv_sz or dx < 1 or dy < 1 then
+                	tofar = true
+                end
+                d = (dy - 1) * self.conv_sz + dx - 1
             else
                 c = c + 1
-                d = g_opts.conv_sz * g_opts.conv_sz + c - 1
+                d = self.conv_sz * self.conv_sz + c - 1
             end
-            local s = e:to_sentence(0, 0, true)
-            for i = 1, #s do
-                count = count + 1
-                if count > sentence:size(1) then error('increase memsize!') end
-                sentence[count] = self.vocab[s[i]] + d * g_opts.nwords
-            end
+            if not tofar then
+            	local s = e:to_sentence(0, 0, true)
+            	for i = 1, #s dofile
+                	count = count + 1
+                	if count > sentence:size(1) then error('increase memsize!') end
+                	sentence[count] = self.vocab[s[i]] + d * self.nwords
+            	end
+        	end
         end
     end
 end
