@@ -124,7 +124,7 @@ function OptsHelper:generate_gameopts()
         if self.generators[name] then
             dep = self.generators[name](self,lopts,name)
         else
-            local p = torch.random(self[name][1],self[name][2])
+            lopts[name] = torch.random(self[name][1],self[name][2])
             dep = 'none'
         end
         if dep == 'none' then
