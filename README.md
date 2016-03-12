@@ -30,7 +30,11 @@ Currently, there are 10 different games implemented, but it is possible to add n
 Examples of each games are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the games are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/games/config/game_config.lua), which can be easily modified.
 
 ## Using Game Environment
-To use the game environment as standalone in Torch, first include it with 
+To use the game environment as standalone in Torch, first start a local `display` server with 
+```
+$ th -ldisplay.start 8000 0.0.0.0
+```
+which will begin the remote desktop to view the MazeBase graphics at `http://0.0.0.0:8000`. See the [full repo](https://github.com/szym/display) for more details. Next, include the init file with 
 ```lua
 dofile('games/init.lua') 
 ```
@@ -54,7 +58,7 @@ If there are more than one game, it will randomly pick one. Now, the current gam
 ```lua
 s = g:to_sentence()
 ```
-which would return a tensor containing words (encoded by `g_vocab` dictionary) describing each item in the game. If you have display package installed, you can see the game on your browser by doing
+which would return a tensor containing words (encoded by `g_vocab` dictionary) describing each item in the game. If you started the display server, you can see the game at `0.0.0.0:8000` on your browser by doing
 ```lua
 g_disp = require('display')
 g_disp.image(g.map:to_image())
