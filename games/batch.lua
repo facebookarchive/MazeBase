@@ -130,7 +130,7 @@ function batch_active(batch)
             for a = 1, g_opts.nagents do
                 g.agent = g.agents[a]
                 if g:is_active() then
-                    active[i] = 1
+                    active[i][a] = 1
                 end
             end
         end
