@@ -30,13 +30,17 @@ Currently, there are 10 different games implemented, but it is possible to add n
 Examples of each games are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the games are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/mazebase/config/game_config.lua), which can be easily modified.
 
 ## Using Game Environment
+First, either install mazebase with `luarocks make *.rockspec` or add the appropriate path:
+```lua
+package.path = package.path .. ';lua/?/init.lua'
+```
 To use the game environment as standalone in Torch, first start a local `display` server with 
 ```
 $ th -ldisplay.start 8000 0.0.0.0
 ```
 which will begin the remote desktop to view the MazeBase graphics at `http://0.0.0.0:8000`. See the [full repo](https://github.com/szym/display) for more details. Next, include the init file with 
 ```lua
-dofile('mazebase/init.lua') 
+g_mazebase = require('mazebase')
 ```
 Then we have to set which config file to use. Here we are using the config file that used in our [paper](http://arxiv.org/abs/1511.07401)
 ```lua
@@ -44,15 +48,15 @@ g_opts = {games_config_path = 'mazebase/config/game_config.lua'}
 ```
 Next, we call this function to create a dictionary with all necessary words used in the game
 ```lua
-g_init_vocab()              
+g_mazebase.init_vocab()            
 ```
 Finally, initialize the game environment with
 ```lua
-g_init_game()
+g_mazebase.init_game()
 ```
 Now we can create a new game instance by calling
 ```lua
-g = new_game()
+g = g_mazebase.new_game()
 ```
 If there are more than one game, it will randomly pick one. Now, the current game state can be retrieved by calling 
 ```lua
