@@ -1,12 +1,13 @@
-paths.dofile('games/init.lua')
+package.path = package.path .. ';lua/?/init.lua'
+g_mazebase = require('mazebase')
 
 g_opts = {}
-g_opts.games_config_path = 'games/config/game_config.lua'
+g_opts.games_config_path = 'lua/mazebase/config/game_config.lua'
 
-g_init_vocab()
-g_init_game()
+g_mazebase.init_vocab()
+g_mazebase.init_game()
 
-g = new_game()
+g = g_mazebase.new_game()
 
 g_disp = require'display'
 nactions = #g.agent.action_names

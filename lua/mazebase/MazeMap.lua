@@ -6,13 +6,14 @@
 -- of patent rights can be found in the PATENTS file in the same directory.
 
 require('image')
+local fpath = require 'sys.fpath'
 
 local MazeMap = torch.class('MazeMap')
 
 function MazeMap:__init(opts)
     self.height = opts.map_height or 10
     self.width = opts.map_width or 10
-    self.img_path = './games/images/'
+    self.img_path = paths.concat(fpath(), 'images')
 
     -- Items by x,y location
     self.items = {}
@@ -85,21 +86,21 @@ function MazeMap:to_image()
     local img = torch.Tensor(3, self.height * K, self.width * K):fill(1)
     local img_goals={}
     for s = 1, 9 do
-        img_goals[s]= image.load(self.img_path .. 'goal' .. s .. '.png')
+        img_goals[s]= image.load(self.img_path .. '/goal' .. s .. '.png')
     end
-    local img_block = image.load(self.img_path .. 'block.png')
-    local img_water = image.load(self.img_path .. 'water.png')
-    local img_pushableblock = image.load(self.img_path .. 'pushableblock.png')
-    local img_bfire = image.load(self.img_path .. 'blue_fire.png')
-    local img_rfire = image.load(self.img_path .. 'red_fire.png')
-    local img_agent = image.load(self.img_path .. 'agent.png')
+    local img_block = image.load(self.img_path .. '/block.png')
+    local img_water = image.load(self.img_path .. '/water.png')
+    local img_pushableblock = image.load(self.img_path .. '/pushableblock.png')
+    local img_bfire = image.load(self.img_path .. '/blue_fire.png')
+    local img_rfire = image.load(self.img_path .. '/red_fire.png')
+    local img_agent = image.load(self.img_path .. '/agent.png')
 
     local img_starenemy = {}
-    img_starenemy[1] = image.load(self.img_path .. 'starenemy1.png')
-    img_starenemy[2] = image.load(self.img_path .. 'starenemy2.png')
-    img_starenemy[3] = image.load(self.img_path .. 'starenemy3.png')
-    img_starenemy[4] = image.load(self.img_path .. 'starenemy4.png')
-    img_starenemy[5] = image.load(self.img_path .. 'starenemy5.png')
+    img_starenemy[1] = image.load(self.img_path .. '/starenemy1.png')
+    img_starenemy[2] = image.load(self.img_path .. '/starenemy2.png')
+    img_starenemy[3] = image.load(self.img_path .. '/starenemy3.png')
+    img_starenemy[4] = image.load(self.img_path .. '/starenemy4.png')
+    img_starenemy[5] = image.load(self.img_path .. '/starenemy5.png')
 
     for y = 1, self.height do
         for x = 1, self.width do

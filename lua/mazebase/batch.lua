@@ -8,7 +8,7 @@
 function batch_init(size)
     local batch = {}
     for i = 1, size do
-        batch[i] = new_game()
+        batch[i] = g_mazebase.new_game()
     end
     return batch
 end

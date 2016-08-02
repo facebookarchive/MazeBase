@@ -5,6 +5,8 @@
 -- LICENSE file in the root directory of this source tree. An additional grant 
 -- of patent rights can be found in the PATENTS file in the same directory.
 
+local mazebase = {}
+
 paths.dofile('MazeBase.lua')
 paths.dofile('OptsHelper.lua')
 paths.dofile('MultiGoals.lua')
@@ -72,7 +74,7 @@ local function init_game_opts()
     return games, helpers
 end
 
-function g_init_vocab()
+function mazebase.init_vocab()
     local function vocab_add(word)
         if g_vocab[word] == nil then
             local ind = g_opts.nwords + 1
@@ -179,15 +181,17 @@ function g_init_vocab()
     vocab_add('at')
 end
 
-function g_init_game()
+function mazebase.init_game()
     g_opts = dofile(g_opts.games_config_path)
     local games, helpers = init_game_opts()
 end
 
-function new_game()
+function mazebase.new_game()
     if g_opts.game == nil or g_opts.game == '' then
         return g_factory:init_random_game()
     else
        return g_factory:init_game(g_opts.game)
     end
 end
+
+return mazebase

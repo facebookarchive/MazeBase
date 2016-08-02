@@ -5,13 +5,15 @@
 -- LICENSE file in the root directory of this source tree. An additional grant 
 -- of patent rights can be found in the PATENTS file in the same directory.
 
+package.path = package.path .. ';lua/?/init.lua'
+g_mazebase = require('mazebase')
+
 local function init()
     require('xlua')
     paths.dofile('util.lua')
     paths.dofile('model.lua')
     paths.dofile('train.lua')
     paths.dofile('test.lua')
-    paths.dofile('games/init.lua')
     torch.setdefaulttensortype('torch.FloatTensor')
 end
 
@@ -24,10 +26,12 @@ local function init_threads()
     for w = 1, g_opts.nworker do
         workers:addjob(w,
             function(opts_orig, vocab_orig)
+                package.path = package.path .. ';lua/?/init.lua'
+                g_mazebase = require('mazebase')
                 g_opts = opts_orig
                 g_vocab = vocab_orig
                 g_init_model()
-                g_init_game()
+                g_mazebase.init_game()
             end,
             function() end,
             g_opts, g_vocab
@@ -55,7 +59,7 @@ cmd:option('--nhop', 3, 'the number of hops in MemNN')
 cmd:option('--nagents', 1, 'the number of agents')
 cmd:option('--nactions', 10, 'the number of agent actions')
 cmd:option('--max_steps', 20, 'force to end the game after this many steps')
-cmd:option('--games_config_path', 'games/config/game_config.lua', 'configuration file for games')
+cmd:option('--games_config_path', 'lua/mazebase/config/game_config.lua', 'configuration file for games')
 cmd:option('--game', '', 'can specify a single game')
 -- training parameters
 cmd:option('--optim', 'rmsprop', 'optimization method: rmsprop | sgd')
@@ -75,7 +79,7 @@ cmd:option('--load', '', 'file name to load the model')
 g_opts = cmd:parse(arg or {})
 print(g_opts)
 
-g_init_vocab()
+g_mazebase.init_vocab()
 if g_opts.nworker > 1 then
     g_workers = init_threads()
 end
@@ -84,7 +88,10 @@ g_log = {}
 if g_opts.optim == 'rmsprop' then g_rmsprop_state = {} end
 g_init_model()
 g_load_model()
-g_init_game()
+g_mazebase.init_game()
 
 train(g_opts.epochs)
 g_save_model()
+
+g_disp = require('display')
+test()
