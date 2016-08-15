@@ -27,7 +27,7 @@ Currently, there are 10 different games implemented, but it is possible to add n
 - **Push block cardinal:** the agent needs to push a Pushable block so that it is on a specified edge of the maze, e.g. the left edge. Any location along the edge is acceptable.
 - **Blocked door:** the agent should navigate to a goal which may lie on the opposite side of a wall of blocks, as in the Light Key game. However, a PushableBlock blocks the gap in the wall instead of a door.
 
-Examples of each games are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the games are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/mazebase/config/game_config.lua), which can be easily modified.
+Examples of each games are shown in this [video](https://youtu.be/kwnp8jFRi5E). The internal parameters of the games are written to a [configuration file](https://github.com/facebook/MazeBase/blob/master/lua/mazebase/config/game_config.lua), which can be easily modified.
 
 ## Using Game Environment
 First, either install mazebase with `luarocks make *.rockspec` or add the appropriate path:
@@ -136,7 +136,7 @@ The first two numbers define lower and upper bounds of the parameter. The actual
 local blockspct = torch.Tensor{0,.05,0,.2,.01}
 local waterpct = torch.Tensor{0,.05,0,.2,.01}
 ```
-There are other generic parameters has be set, but see the actual [config file](http://github.com/facebook/MazeBase/blob/master/mazebase/config/singlegoal.lua) for detail. Now we are ready to use the game!
+There are other generic parameters has be set, but see the actual [config file](https://github.com/facebook/MazeBase/blob/master/lua/mazebase/config/singlegoal.lua) for detail. Now we are ready to use the game!
 
 
 ## Training an agent using neural networks
