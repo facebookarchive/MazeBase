@@ -2,7 +2,7 @@ package = "mazebase"
 version = "1.0.0-0"
 
 source = {
-  dir = "mazebase-1.1.0",
+  dir = "MazeBase-master",
   url = "https://github.com/facebook/MazeBase/archive/master.zip",
 }
 

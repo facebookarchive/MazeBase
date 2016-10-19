@@ -10,7 +10,7 @@ local SingleGoal, parent = torch.class('SingleGoal', 'MazeBase')
 function SingleGoal:__init(opts, vocab)
     parent.__init(self, opts, vocab)
     self:add_default_items()
-    self.goal = self:place_item_rand({type = 'goal'})
+    self.goal = self:place_item_rand({type = 'goal', name = 'goal1'})
 end
 
 function SingleGoal:update()
