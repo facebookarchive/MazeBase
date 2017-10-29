@@ -417,6 +417,7 @@ class BaseMazeGame(object):
 
     def act(self, action):
         ''' Performs an action for current agent '''
+        self._acting = None
         if self._finished():
             return
         actor = self.current_agent()
@@ -427,7 +428,6 @@ class BaseMazeGame(object):
         self._actions.get((actor, action), noop)()
         self._step()
         self._agents[actor] = self._items[actor].speed
-        self._acting = None
 
         self.__reward = self._get_reward(actor)
         self.__reward_history[actor] = self.__reward_history.get(actor, 0) + \
