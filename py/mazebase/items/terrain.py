@@ -120,7 +120,7 @@ class Door(HasStatesMixin, MazeItem):
 
     def featurize(self):
         return super(Door, self).featurize() + \
-            ["open" if self.open else "closed", self.STATE_FEATURE[self.state]]
+            ["open" if self.isopen else "closed", self.STATE_FEATURE[self.state]]
 
     @classmethod
     def all_features(cls):
